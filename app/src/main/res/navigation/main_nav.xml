@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_nav"
+    app:startDestination="@id/discoveryFragment"
+    >
+
+    <fragment
+        android:id="@+id/discoveryFragment"
+        android:name="com.fhj.discoveryapp.discovery.DiscoveryFragment"
+        />
+    <fragment
+        android:id="@+id/discoveryFragment2"
+        android:name="com.fhj.discoveryapp.me.MeFragment"
+        >
+        <action
+            android:id="@+id/action_discoveryFragment2_to_discoveryFragment"
+            app:destination="@id/discoveryFragment" />
+
+    </fragment>
+
+
+</navigation>
