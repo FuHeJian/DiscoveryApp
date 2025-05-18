@@ -3,15 +3,19 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+apply(from = file("../base.gradle.kts"))
+
 android {
     namespace = "com.fhj.dns"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    lint{
+        targetSdk = 36
     }
 
     buildTypes {
