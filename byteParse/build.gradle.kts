@@ -1,23 +1,6 @@
-
-plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+plugins{
+    kotlin("jvm")
 }
-
-apply(from = file("../base.gradle"))
-
-android {
-    namespace = "com.fhj.byteparse"
-
-    defaultConfig {
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    configurations.size
-
-}
-
 dependencies {
 
     fun getKotlinVersion() = libs.versions.kotlin.get()
@@ -32,11 +15,5 @@ dependencies {
         }
     }
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     implementation("com.google.devtools.ksp:symbol-processing-api:${getKSPVersion()}")
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

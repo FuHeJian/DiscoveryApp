@@ -44,6 +44,7 @@ dependencies {
 
     implementation(project(":Logger"))
     implementation(project(":byteParse"))
+    ksp(project(path = ":byteParse"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

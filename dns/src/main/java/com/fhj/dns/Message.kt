@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 
 @ByteParseTarget
-data class Message(@ByteParseProperty(2) var type: MessageType, @ByteParseProperty(1)var sync: Sync, var user: User) {
+data class Message(@ByteParseProperty(30) var type: MessageType, @ByteParseProperty(1)var sync: Sync, var user: User) {
 
     companion object {
 
