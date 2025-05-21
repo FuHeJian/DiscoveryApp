@@ -137,7 +137,6 @@ public class WifiUtil {
      *     需要权限
      *     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
      *     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-     *     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
      *
      * @param context 同于获取wifi服务
      */

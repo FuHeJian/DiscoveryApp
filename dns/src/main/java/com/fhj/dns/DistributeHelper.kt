@@ -17,21 +17,21 @@ object DistributeHelper {
 
     fun handMessage(message: Message) {
         when {
-            message.title == DnsHelper.EXPOSURE_TITLE -> {
-                //TODO 处理暴露消息
-                allDiscoveryAddress.add(message.address)
-                allExposureAddressOnUpdate.value = allDiscoveryAddress
-            }
-
-            message.title == DnsHelper.DISCOVERY_TITLE -> {
-                //TODO 处理发现消息
-            }
-
-            message.title == DnsHelper.CLOSE_TITLE -> {
-                //TODO 处理关闭消息
-                allDiscoveryAddress.remove(message.address)
-                allExposureAddressOnUpdate.value = allDiscoveryAddress
-            }
+//            message.title == DnsHelper.EXPOSURE_TITLE -> {
+//                //TODO 处理暴露消息
+//                allDiscoveryAddress.add(message.address)
+//                allExposureAddressOnUpdate.value = allDiscoveryAddress
+//            }
+//
+//            message.title == DnsHelper.DISCOVERY_TITLE -> {
+//                //TODO 处理发现消息
+//            }
+//
+//            message.title == DnsHelper.CLOSE_TITLE -> {
+//                //TODO 处理关闭消息
+//                allDiscoveryAddress.remove(message.address)
+//                allExposureAddressOnUpdate.value = allDiscoveryAddress
+//            }
 
             else -> {
                 //TODO 处理未知消息

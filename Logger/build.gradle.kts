@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-apply(from = file("../base.gradle.kts"))
+apply(from = file("../base.gradle"))
 
 android {
     namespace = "com.fhj.logger"

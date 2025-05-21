@@ -1,12 +1,15 @@
 package com.fhj.dns
 
+import com.fhj.byteparse.ByteParseProperty
+import com.fhj.byteparse.ByteParseTarget
 import com.fhj.dns.DnsHelper.HEADER_SIZE
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 
-data class Message(var title: String, var address: InetAddress) {
+@ByteParseTarget
+data class Message(@ByteParseProperty(2) var type: MessageType, @ByteParseProperty(1)var sync: Sync, var user: User) {
 
     companion object {
 
@@ -20,7 +23,7 @@ data class Message(var title: String, var address: InetAddress) {
                 val title = charset.decode(ByteBuffer.wrap(data.data.copyOfRange(0, HEADER_SIZE)))
                     .toString()
                 val add = InetAddress.getByAddress(data.data.copyOfRange(10, 14))
-                return Message(title, add)
+                return Message(MessageType.EXPOSURE, sync = Sync.SEND,User("",add))
             } else {
                 throw IllegalArgumentException("Illegal Header")
             }

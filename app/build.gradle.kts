@@ -1,15 +1,9 @@
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.internal.dsl.BaseAppModuleExtensionInternal
-import org.jetbrains.kotlin.gradle.internal.AndroidExtensionsExtension
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
 
-apply {
-    this.from(file("../base.gradle.kts"))
-}
+apply(from = file("../base.gradle"))
 
 android {
     namespace = "com.fhj.discoveryapp"
@@ -34,18 +28,8 @@ dependencies {
     implementation(libs.navigation.fragment.ui)
     implementation(project(":Base"))
     implementation(project(":dns"))
+    compileOnly(project(path = ":byteParse"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-}
-
-// 示例共通配置
-tasks.register("commonTask") {
-    doLast {
-        //做一些公共的配置
-        (this.extensions["android"] as BaseAppModuleExtensionInternal).apply {
-            compileSdk = 36
-
-        }
-    }
 }

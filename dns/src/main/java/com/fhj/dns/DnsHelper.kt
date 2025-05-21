@@ -99,7 +99,7 @@ object DnsHelper {
         val msg = Message.parse(packet)
 
         val local = wifiAddress.address
-        if (!msg.address.address.contentEquals(local)) DistributeHelper.onReceiveData(msg)
+//        if (!msg.address.address.contentEquals(local)) DistributeHelper.onReceiveData(msg)
     }
 
     suspend fun exposure() {

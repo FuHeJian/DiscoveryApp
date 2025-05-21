@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
-apply(from = file("../base.gradle.kts"))
+apply(from = file("../base.gradle"))
 
 android {
     namespace = "com.fhj.dns"
@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(project(":Logger"))
+    implementation(project(":byteParse"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

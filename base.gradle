@@ -1,18 +1,15 @@
 android{
-
     compileSdk = 36
-
-    defaultConfig {
+    defaultConfig{
         minSdk = 24
     }
-
     lint{
         targetSdk = 36
+        disable "NullSafeMutableLiveData"
     }
-
     buildTypes {
         release {
-            isMinifyEnabled = true
+            minifyEnabled = false
             proguardFiles(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
                     "proguard-rules.pro"
@@ -26,6 +23,4 @@ android{
     kotlinOptions {
         jvmTarget = "11"
     }
-
 }
-
