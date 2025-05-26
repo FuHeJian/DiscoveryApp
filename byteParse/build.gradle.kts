@@ -16,4 +16,6 @@ dependencies {
     }
 
     implementation("com.google.devtools.ksp:symbol-processing-api:${getKSPVersion()}")
+    implementation(libs.kotlinpoet)
+    implementation(libs.gson)
 }

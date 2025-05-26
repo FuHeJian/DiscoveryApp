@@ -7,6 +7,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.squareup.kotlinpoet.FileSpec
 
 class ByteSymbol : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
@@ -19,9 +20,17 @@ class ByteSymbolProcessor(private val environment: SymbolProcessorEnvironment) :
     override fun process(resolver: Resolver): List<KSAnnotated> {
         environment.codeGenerator
         environment.options
+
         resolver.getSymbolsWithAnnotation(ByteParseTarget::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
             .forEach {
+                //修改当前类文件
+                FileSpec.builder("com.fhj.byteparse", it.simpleName.asString() + ".kt")
+                    .addFileComment("Generated file. Do not modify!")
+                    .build()
+                    .writeTo(environment.codeGenerator, it)
+
+
                 it.getAllProperties().forEach {
                     environment.logger.info("${it.simpleName.asString()} type ${it.type.resolve().arguments}")
                     environment.logger.info("${it.simpleName.asString()} ext: ${it.extensionReceiver.toString()}")
