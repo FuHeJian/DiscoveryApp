@@ -2,7 +2,6 @@ package com.fhj.logger
 
 import android.os.Build
 import java.lang.System
-import java.lang.reflect.*
 
 enum class PlatForm {
     ANDROID,

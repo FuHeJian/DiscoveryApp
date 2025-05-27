@@ -1,16 +1,22 @@
 package com.fhj.byteparse
 
-import com.google.devtools.ksp.getAllSuperTypes
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSDeclaration
+import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.Modifier
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -18,8 +24,8 @@ import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
-import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
+import java.lang.reflect.Type
 
 /**
  * 获取原始class的代码对应的TypeSpec，方便修改源文件，修改完之后需要writeTo
@@ -36,7 +42,7 @@ fun KSClassDeclaration.getRawTypeSpec(): TypeSpec {
             }
             it.annotations
             ParameterSpec.builder(it.name!!.asString(), cl)
-                .addAnnotation()
+                .addAnnotations(it.annotations.map { it.toPoetAnnotation() }.toList())
                 .build()
         }
         FunSpec.constructorBuilder()
@@ -139,6 +145,7 @@ fun KSAnnotation.toPoetAnnotation(): AnnotationSpec {
 
 fun KSFunctionDeclaration.toPoetFunctionSpec(): FunSpec {
 
+/*
     // 获取函数体源码（需从原文件截取）
     val bodyCode = body?.let { body ->
         val fileContent = (containingFile as KSFile).fileContent
@@ -148,20 +155,25 @@ fun KSFunctionDeclaration.toPoetFunctionSpec(): FunSpec {
             .trimIndent()
     }
 
-
+    this.returnType.modifiers
     this.returnType.resolve().declaration.qualifiedName
-
+*/
 
     return FunSpec.builder(simpleName.asString())
         .addModifiers(modifiers.map { it.toPoetModifier() })
         .addParameters(parameters.map { it.toPoetParameter() })
-        .returns()
         .build()
 }
 
-fun KSTypeReference.toTypeName(){
-
-    this.resolve().isFunctionType
+fun KSType.toTypeName() {
 
 
+}
+
+/**
+ * 打印class的日志
+ */
+fun KSClassDeclaration.log(ksplog: KSPLogger) {
+    val gson = GsonBuilder().create()
+    ksplog.logging(gson.toJson(this))
 }
