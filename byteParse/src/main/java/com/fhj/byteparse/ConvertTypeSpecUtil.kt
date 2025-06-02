@@ -19,6 +19,7 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -145,19 +146,19 @@ fun KSAnnotation.toPoetAnnotation(): AnnotationSpec {
 
 fun KSFunctionDeclaration.toPoetFunctionSpec(): FunSpec {
 
-/*
-    // 获取函数体源码（需从原文件截取）
-    val bodyCode = body?.let { body ->
-        val fileContent = (containingFile as KSFile).fileContent
-        fileContent.substring(body.startOffset, body.endOffset)
-            .trim()
-            .removeSurrounding("{", "}") // 去除外层大括号
-            .trimIndent()
-    }
+    /*
+        // 获取函数体源码（需从原文件截取）
+        val bodyCode = body?.let { body ->
+            val fileContent = (containingFile as KSFile).fileContent
+            fileContent.substring(body.startOffset, body.endOffset)
+                .trim()
+                .removeSurrounding("{", "}") // 去除外层大括号
+                .trimIndent()
+        }
 
-    this.returnType.modifiers
-    this.returnType.resolve().declaration.qualifiedName
-*/
+        this.returnType.modifiers
+        this.returnType.resolve().declaration.qualifiedName
+    */
 
     return FunSpec.builder(simpleName.asString())
         .addModifiers(modifiers.map { it.toPoetModifier() })
@@ -176,4 +177,30 @@ fun KSType.toTypeName() {
 fun KSClassDeclaration.log(ksplog: KSPLogger) {
     val gson = GsonBuilder().create()
     ksplog.logging(gson.toJson(this))
+}
+
+data class ParseProperty(val name: String,val byteLength: Int)
+
+fun KSClassDeclaration.createByteParse() {
+    val packagename = this.packageName
+
+    //判断是不是需要解析
+    val needParse =
+        this.annotations.find { it.annotationType.resolve().declaration.simpleName.asString() == ByteParseTarget::class.simpleName!! }
+
+    if (needParse != null) {
+        this.getAllProperties().mapNotNull { it }
+    }
+
+    val tn = ClassName.bestGuess(this.qualifiedName?.asString()!!)
+    FunSpec.builder("parse")
+        .receiver(tn)
+        .addCode(CodeBlock.of())
+        .build()
+
+}
+
+fun createNewFile() {
+
+    FileSpec.builder("com.")
 }
