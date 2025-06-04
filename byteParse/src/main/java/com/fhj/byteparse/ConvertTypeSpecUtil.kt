@@ -22,6 +22,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
@@ -275,6 +276,11 @@ fun KSClassDeclaration.createByteParse() {
     }
 
     val tn = ClassName.bestGuess(this.qualifiedName?.asString()!!)
+
+    CodeBlock.Builder().apply {
+
+    }
+    //由于无法还原文件内容，所以只能生成一个文件，来添加扩展方法
 //    FunSpec.builder("parse")
 //        .receiver(tn)
 //        .addCode(CodeBlock.of())

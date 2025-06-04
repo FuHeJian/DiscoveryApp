@@ -16,6 +16,7 @@ dependencies {
     }
 
     implementation("com.google.devtools.ksp:symbol-processing-api:${getKSPVersion()}")
+    implementation(libs.flatbuffers.java)//解析通信数据
     implementation(libs.kotlinpoet)
     implementation(libs.gson)
 }
