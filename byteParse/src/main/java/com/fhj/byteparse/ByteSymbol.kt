@@ -23,6 +23,7 @@ class ByteSymbolProcessor(private val environment: SymbolProcessorEnvironment) :
             .filterIsInstance<KSClassDeclaration>()
             .forEach {
                 //修改当前类文件
+                environment.logger.info("我的的的")
                 it.log(environment.logger)
             }
         return emptyList()

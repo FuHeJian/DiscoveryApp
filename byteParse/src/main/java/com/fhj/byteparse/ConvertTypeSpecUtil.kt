@@ -5,7 +5,7 @@ import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFile
+import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -14,19 +14,20 @@ import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonElement
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
+import com.google.gson.JsonObject
+import com.google.gson.TypeAdapter
+import com.google.gson.TypeAdapterFactory
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
-import java.lang.reflect.Type
 
 /**
  * 获取原始class的代码对应的TypeSpec，方便修改源文件，修改完之后需要writeTo
@@ -175,14 +176,98 @@ fun KSType.toTypeName() {
  * 打印class的日志
  */
 fun KSClassDeclaration.log(ksplog: KSPLogger) {
-    val gson = GsonBuilder().create()
-    ksplog.logging(gson.toJson(this))
+    val gson = GsonBuilder()
+        .setExclusionStrategies(object : ExclusionStrategy {
+            var num = 0
+            override fun shouldSkipField(f: FieldAttributes?): Boolean {
+                if (f == null) return false
+                val field = f::class.java.getDeclaredField("field")
+//                ksplog.info("我的  shouldSkipField ${f.getDeclaredClass().name} -- ${f.declaringClass.name} --- ${f.getName()}")
+
+                if (f.declaringClass.name.contains("atomic") || f.name.contains("simpleName") || f.name.contains(
+                        "annotations"
+                    ) || f.name.contains(
+                        "parentDeclaration"
+                    )
+                ) {
+                    return true
+                }
+                return num++ > 200
+            }
+
+            override fun shouldSkipClass(clazz: Class<*>?): Boolean {
+                if (clazz == null) return false
+
+                try {
+                    clazz.genericSuperclass
+                    clazz.genericInterfaces
+                } catch (_: Exception) {
+                    return true
+                }
+                return false
+            }
+        })
+        .registerTypeAdapterFactory(object : TypeAdapterFactory {
+            override fun <T : Any?> create(
+                gson: Gson?,
+                type: TypeToken<T?>?
+            ): TypeAdapter<T?>? {
+                if (KSDeclaration::class.java.isAssignableFrom(type!!.rawType)) {
+                    val delegateAdapter = gson!!.getDelegateAdapter(this, type)
+                    // 生成默认的 JsonObject 转换器
+                    val jsonAdapter: TypeAdapter<JsonObject> =
+                        gson.getAdapter(JsonObject::class.java)
+                    return object : TypeAdapter<T?>() {
+                        override fun write(
+                            out: JsonWriter?,
+                            value: T?
+                        ) {
+                            val cv = value as KSDeclaration
+
+                            val jobj = delegateAdapter.toJsonTree(value!!).asJsonObject
+                            val wjoj = JsonObject().apply {
+                                addProperty("simpleName", cv.simpleName.asString())
+                                addProperty("qualifyName", cv.qualifiedName?.asString() ?: "null")
+                                addProperty("type", cv.javaClass.name)
+                                addProperty(
+                                    "泛型信息",
+                                    cv.typeParameters.fold(
+                                        ""
+                                    ) { a, b -> a + "," + b.name.asString() }
+                                )
+                                addProperty(
+                                    "annoations",
+                                    cv.annotations.fold("",
+                                        { a, b ->
+                                            a + "," + b.arguments.fold("",
+                                                { a, b -> a + "," + b.value.toString() })
+                                        })
+                                )
+                                add("data",jobj)
+                            }
+
+                            jsonAdapter.write(out, wjoj)
+                        }
+
+                        override fun read(`in`: JsonReader?): T? {
+                            return delegateAdapter.read(`in`)
+                        }
+                    }
+                } else {
+                    return null
+                }
+            }
+        })
+        .create()
+    ksplog.info("我的" + gson.toJson(this))
 }
 
-data class ParseProperty(val name: String,val byteLength: Int)
+data class ParseProperty(val name: String, val byteLength: Int)
 
 fun KSClassDeclaration.createByteParse() {
     val packagename = this.packageName
+
+    this.typeParameters
 
     //判断是不是需要解析
     val needParse =
@@ -193,14 +278,14 @@ fun KSClassDeclaration.createByteParse() {
     }
 
     val tn = ClassName.bestGuess(this.qualifiedName?.asString()!!)
-    FunSpec.builder("parse")
-        .receiver(tn)
-        .addCode(CodeBlock.of())
-        .build()
+//    FunSpec.builder("parse")
+//        .receiver(tn)
+//        .addCode(CodeBlock.of())
+//        .build()
 
 }
 
 fun createNewFile() {
 
-    FileSpec.builder("com.")
+
 }
