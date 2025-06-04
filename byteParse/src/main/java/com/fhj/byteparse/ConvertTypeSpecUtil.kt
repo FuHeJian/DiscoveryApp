@@ -181,9 +181,6 @@ fun KSClassDeclaration.log(ksplog: KSPLogger) {
             var num = 0
             override fun shouldSkipField(f: FieldAttributes?): Boolean {
                 if (f == null) return false
-                val field = f::class.java.getDeclaredField("field")
-//                ksplog.info("我的  shouldSkipField ${f.getDeclaredClass().name} -- ${f.declaringClass.name} --- ${f.getName()}")
-
                 if (f.declaringClass.name.contains("atomic") || f.name.contains("simpleName") || f.name.contains(
                         "annotations"
                     ) || f.name.contains(
