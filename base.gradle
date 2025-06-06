@@ -1,9 +1,9 @@
-android{
+android {
     compileSdk = 36
-    defaultConfig{
+    defaultConfig {
         minSdk = 24
     }
-    lint{
+    lint {
         targetSdk = 36
         disable "NullSafeMutableLiveData"
     }
@@ -22,5 +22,10 @@ android{
     }
     kotlinOptions {
         jvmTarget = "11"
+    }
+
+    dependencies {
+        if (displayName != "Logger")
+            implementation project(":Logger")
     }
 }

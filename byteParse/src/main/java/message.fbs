@@ -1,0 +1,104 @@
+
+namespace com.fhj.byteparse.flatbuffers;
+
+enum MessageType:uint {
+   DISCOVERY = 0,
+   Text = 1,
+   IMAGE = 2,
+   AUDIO = 3,
+   VIDEO = 4,
+   FILE = 5,
+   /**
+    * 多种消息一起发送
+    */
+   MULTI = 6,
+   CLOSE = 7,
+}
+
+enum MessageStatus:ubyte {
+    /**
+     * 消息发送成功
+     */
+    SUCCESS = 0,
+    /**
+     * 消息发送失败
+     */
+    FAILED = 1,
+    /**
+     * 消息正在发送中
+     */
+    SENDING = 2,
+    /**
+     * 消息已读
+     */
+    READ = 3,
+}
+
+table User{
+    device:string;
+    name:string;
+    ip:string;
+}
+
+table TextMessage {
+    text:string;
+}
+table ImageMessage {
+    imageName:string;
+    imageSize:uint;
+    imageWidth:uint;
+    imageHeight:uint;
+    imageStream:[byte];
+}
+table AudioMessage {
+    audioDuration:uint;
+    audioBitrate:uint;
+    audioSampleRate:uint;
+    audioChannels:uint;
+    audioSize:uint;
+    audioStream:[byte];
+}
+table VideoMessage {
+    videoName:string;
+    videoSize:uint;
+    videoType:string;
+    videoDuration:uint;
+    videoWidth:uint;
+    videoHeight:uint;
+    videoBitrate:uint;
+    videoFps:uint;
+    videoCodec:string;
+    videoCover:[byte];
+    videoStream:[byte];
+}
+table FileMessage {
+    fileName:string;
+    fileSize:uint;
+    fileType:string;
+    fileData:[byte];
+}
+
+union MessageData {
+     TextMessage,
+     ImageMessage,
+     AudioMessage,
+     VideoMessage,
+     FileMessage,
+}
+
+
+table Message {
+    type:MessageType;
+    id:uint;
+    fromUser:User;
+    toUser:User;
+    status:MessageStatus;
+    data:MessageData;
+}
+
+// 定义 gRPC 服务
+rpc_service ChatService {
+  // 定义双向流 RPC。
+  // 注意这里的语法是 (streaming: "duplex")
+  chat(Message):Message (streaming: "duplex");
+}

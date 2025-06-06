@@ -1,6 +1,11 @@
 package com.fhj.dns
 
 import android.content.Context
+import android.os.Build
+import com.fhj.byteparse.flatbuffers.ChatChannel
+import com.fhj.byteparse.flatbuffers.ChatServiceGrpc
+import com.fhj.byteparse.flatbuffers.User
+import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.logger.Logger
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.net.DatagramPacket
@@ -9,7 +14,6 @@ import java.net.InetAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
 import kotlin.coroutines.resume
-import kotlin.math.max
 
 
 object DnsHelper {
@@ -62,10 +66,20 @@ object DnsHelper {
 
     lateinit var wifiAddress: InetAddress
 
+    lateinit var chnnel: ChatChannel
+
+    /**
+     * 加入组播后，通过grpc通信，MulticastSocket设置了SocketOptions.SO_REUSEADDR选项，
+     *
+     * 支持多个socket监听同一个端口，所以可以再使用grpc来通信
+     *
+     */
     fun setInterface(address: InetAddress) {
         try {
             if (!isMulticastSupported()) throw RuntimeException("不支持多播")
             wifiAddress = address
+
+            chnnel = ChatChannel(GROUP_IP, PORT, UserMake(Build.DEVICE, "test", address.toString()))
             HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
             /**
              * 设置本地端口，应为要同时监听远程发送过来的消息，所以端口要设置的一样
@@ -83,6 +97,10 @@ object DnsHelper {
         }
     }
 
+    fun chat(user: User) {
+
+    }
+
 
     fun destroy() {
         socket.leaveGroup(GROUP_ADDRESS)
@@ -96,10 +114,6 @@ object DnsHelper {
             // 阻塞接收数据
             it.resume(socket.receive(packet))
         }
-        val msg = Message.parse(packet)
-
-        val local = wifiAddress.address
-//        if (!msg.address.address.contentEquals(local)) DistributeHelper.onReceiveData(msg)
     }
 
     suspend fun exposure() {
@@ -110,8 +124,9 @@ object DnsHelper {
         /**
          * 设置发送数据和远程地址
          */
-        val edp = DatagramPacket(data, data.size, ADDRESS, PORT)
-        socket.send(edp)
+
+        chnnel.chat()
+
     }
 
     fun byteToIp(bytes: ByteArray): String {

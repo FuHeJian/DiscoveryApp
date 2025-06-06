@@ -1,6 +1,8 @@
 [versions]
 agp = "8.7.2"
 flatbuffersJava = "25.2.10"
+flatbuffersJavaGrpc = "2.0.3"
+grpcStub = "1.73.0"
 gson = "2.13.1"
 kotlin = "2.0.21"
 coreKtx = "1.16.0"
@@ -16,6 +18,8 @@ navigationKtx = "2.9.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 flatbuffers-java = { module = "com.google.flatbuffers:flatbuffers-java", version.ref = "flatbuffersJava" }
+flatbuffers-java-grpc = { module = "com.google.flatbuffers:flatbuffers-java-grpc", version.ref = "flatbuffersJavaGrpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpcStub" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

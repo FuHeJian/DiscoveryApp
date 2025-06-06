@@ -24,7 +24,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    api(project(":Logger"))
     implementation(libs.kotlin.reflect)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
