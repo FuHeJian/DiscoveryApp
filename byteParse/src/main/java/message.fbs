@@ -67,7 +67,6 @@ table VideoMessage {
     videoHeight:uint;
     videoBitrate:uint;
     videoFps:uint;
-    videoCodec:string;
     videoCover:[byte];
     videoStream:[byte];
 }

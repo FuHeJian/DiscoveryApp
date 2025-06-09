@@ -16,146 +16,64 @@ import com.google.flatbuffers.StringVector;
 import com.google.flatbuffers.Struct;
 import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @SuppressWarnings("unused")
 public final class Message extends Table {
-    public static void ValidateVersion() {
-        Constants.FLATBUFFERS_25_2_10();
-    }
+  public static void ValidateVersion() { Constants.FLATBUFFERS_25_2_10(); }
+  public static Message getRootAsMessage(ByteBuffer _bb) { return getRootAsMessage(_bb, new Message()); }
+  public static Message getRootAsMessage(ByteBuffer _bb, Message obj) { _bb.order(ByteOrder.LITTLE_ENDIAN); return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
+  public Message __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-    public static Message getRootAsMessage(ByteBuffer _bb) {
-        return getRootAsMessage(_bb, new Message());
-    }
+  public long type() { int o = __offset(4); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+  public long id() { int o = __offset(6); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
+  public com.fhj.byteparse.flatbuffers.User fromUser() { return fromUser(new com.fhj.byteparse.flatbuffers.User()); }
+  public com.fhj.byteparse.flatbuffers.User fromUser(com.fhj.byteparse.flatbuffers.User obj) { int o = __offset(8); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public com.fhj.byteparse.flatbuffers.User toUser() { return toUser(new com.fhj.byteparse.flatbuffers.User()); }
+  public com.fhj.byteparse.flatbuffers.User toUser(com.fhj.byteparse.flatbuffers.User obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public int status() { int o = __offset(12); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
+  public byte dataType() { int o = __offset(14); return o != 0 ? bb.get(o + bb_pos) : 0; }
+  public Table data(Table obj) { int o = __offset(16); return o != 0 ? __union(obj, o + bb_pos) : null; }
 
-    public static Message getRootAsMessage(ByteBuffer _bb, Message obj) {
-        _bb.order(ByteOrder.LITTLE_ENDIAN);
-        return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb));
-    }
+  public static int createMessage(FlatBufferBuilder builder,
+      long type,
+      long id,
+      int fromUserOffset,
+      int toUserOffset,
+      int status,
+      byte dataType,
+      int dataOffset) {
+    builder.startTable(7);
+    Message.addData(builder, dataOffset);
+    Message.addToUser(builder, toUserOffset);
+    Message.addFromUser(builder, fromUserOffset);
+    Message.addId(builder, id);
+    Message.addType(builder, type);
+    Message.addDataType(builder, dataType);
+    Message.addStatus(builder, status);
+    return Message.endMessage(builder);
+  }
 
-    public void __init(int _i, ByteBuffer _bb) {
-        __reset(_i, _bb);
-    }
+  public static void startMessage(FlatBufferBuilder builder) { builder.startTable(7); }
+  public static void addType(FlatBufferBuilder builder, long type) { builder.addInt(0, (int) type, (int) 0L); }
+  public static void addId(FlatBufferBuilder builder, long id) { builder.addInt(1, (int) id, (int) 0L); }
+  public static void addFromUser(FlatBufferBuilder builder, int fromUserOffset) { builder.addOffset(2, fromUserOffset, 0); }
+  public static void addToUser(FlatBufferBuilder builder, int toUserOffset) { builder.addOffset(3, toUserOffset, 0); }
+  public static void addStatus(FlatBufferBuilder builder, int status) { builder.addByte(4, (byte) status, (byte) 0); }
+  public static void addDataType(FlatBufferBuilder builder, byte dataType) { builder.addByte(5, dataType, 0); }
+  public static void addData(FlatBufferBuilder builder, int dataOffset) { builder.addOffset(6, dataOffset, 0); }
+  public static int endMessage(FlatBufferBuilder builder) {
+    int o = builder.endTable();
+    return o;
+  }
 
-    public Message __assign(int _i, ByteBuffer _bb) {
-        __init(_i, _bb);
-        return this;
-    }
+  public static final class Vector extends BaseVector {
+    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
 
-    public long type() {
-        int o = __offset(4);
-        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
-    }
-
-    public long id() {
-        int o = __offset(6);
-        return o != 0 ? (long) bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L;
-    }
-
-    public com.fhj.byteparse.flatbuffers.User fromUser() {
-        return fromUser(new com.fhj.byteparse.flatbuffers.User());
-    }
-
-    public com.fhj.byteparse.flatbuffers.User fromUser(com.fhj.byteparse.flatbuffers.User obj) {
-        int o = __offset(8);
-        return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null;
-    }
-
-    public com.fhj.byteparse.flatbuffers.User toUser() {
-        return toUser(new com.fhj.byteparse.flatbuffers.User());
-    }
-
-    public com.fhj.byteparse.flatbuffers.User toUser(com.fhj.byteparse.flatbuffers.User obj) {
-        int o = __offset(10);
-        return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null;
-    }
-
-    public int status() {
-        int o = __offset(12);
-        return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0;
-    }
-
-    public byte dataType() {
-        int o = __offset(14);
-        return o != 0 ? bb.get(o + bb_pos) : 0;
-    }
-
-    public Table data(Table obj) {
-        int o = __offset(16);
-        return o != 0 ? __union(obj, o + bb_pos) : null;
-    }
-
-    public static int createMessage(FlatBufferBuilder builder,
-                                    long type,
-                                    long id,
-                                    int fromUserOffset,
-                                    int toUserOffset,
-                                    int status,
-                                    byte dataType,
-                                    int dataOffset) {
-        builder.startTable(7);
-        Message.addData(builder, dataOffset);
-        Message.addToUser(builder, toUserOffset);
-        Message.addFromUser(builder, fromUserOffset);
-        Message.addId(builder, id);
-        Message.addType(builder, type);
-        Message.addDataType(builder, dataType);
-        Message.addStatus(builder, status);
-        return Message.endMessage(builder);
-    }
-
-    public static void startMessage(FlatBufferBuilder builder) {
-        builder.startTable(7);
-    }
-
-    public static void addType(FlatBufferBuilder builder, long type) {
-        builder.addInt(0, (int) type, (int) 0L);
-    }
-
-    public static void addId(FlatBufferBuilder builder, long id) {
-        builder.addInt(1, (int) id, (int) 0L);
-    }
-
-    public static void addFromUser(FlatBufferBuilder builder, int fromUserOffset) {
-        builder.addOffset(2, fromUserOffset, 0);
-    }
-
-    public static void addToUser(FlatBufferBuilder builder, int toUserOffset) {
-        builder.addOffset(3, toUserOffset, 0);
-    }
-
-    public static void addStatus(FlatBufferBuilder builder, int status) {
-        builder.addByte(4, (byte) status, (byte) 0);
-    }
-
-    public static void addDataType(FlatBufferBuilder builder, byte dataType) {
-        builder.addByte(5, dataType, 0);
-    }
-
-    public static void addData(FlatBufferBuilder builder, int dataOffset) {
-        builder.addOffset(6, dataOffset, 0);
-    }
-
-    public static int endMessage(FlatBufferBuilder builder) {
-        int o = builder.endTable();
-        return o;
-    }
-
-    public static final class Vector extends BaseVector {
-        public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) {
-            __reset(_vector, _element_size, _bb);
-            return this;
-        }
-
-        public Message get(int j) {
-            return get(new Message(), j);
-        }
-
-        public Message get(Message obj, int j) {
-            return obj.__assign(__indirect(__element(j), bb), bb);
-        }
-    }
+    public Message get(int j) { return get(new Message(), j); }
+    public Message get(Message obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
 }
 

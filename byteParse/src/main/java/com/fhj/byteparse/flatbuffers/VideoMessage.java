@@ -39,21 +39,18 @@ public final class VideoMessage extends Table {
   public long videoHeight() { int o = __offset(14); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
   public long videoBitrate() { int o = __offset(16); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
   public long videoFps() { int o = __offset(18); return o != 0 ? (long)bb.getInt(o + bb_pos) & 0xFFFFFFFFL : 0L; }
-  public String videoCodec() { int o = __offset(20); return o != 0 ? __string(o + bb_pos) : null; }
-  public ByteBuffer videoCodecAsByteBuffer() { return __vector_as_bytebuffer(20, 1); }
-  public ByteBuffer videoCodecInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 20, 1); }
-  public byte videoCover(int j) { int o = __offset(22); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
-  public int videoCoverLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
+  public byte videoCover(int j) { int o = __offset(20); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int videoCoverLength() { int o = __offset(20); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector videoCoverVector() { return videoCoverVector(new ByteVector()); }
-  public ByteVector videoCoverVector(ByteVector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
-  public ByteBuffer videoCoverAsByteBuffer() { return __vector_as_bytebuffer(22, 1); }
-  public ByteBuffer videoCoverInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 22, 1); }
-  public byte videoStream(int j) { int o = __offset(24); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
-  public int videoStreamLength() { int o = __offset(24); return o != 0 ? __vector_len(o) : 0; }
+  public ByteVector videoCoverVector(ByteVector obj) { int o = __offset(20); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
+  public ByteBuffer videoCoverAsByteBuffer() { return __vector_as_bytebuffer(20, 1); }
+  public ByteBuffer videoCoverInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 20, 1); }
+  public byte videoStream(int j) { int o = __offset(22); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
+  public int videoStreamLength() { int o = __offset(22); return o != 0 ? __vector_len(o) : 0; }
   public ByteVector videoStreamVector() { return videoStreamVector(new ByteVector()); }
-  public ByteVector videoStreamVector(ByteVector obj) { int o = __offset(24); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
-  public ByteBuffer videoStreamAsByteBuffer() { return __vector_as_bytebuffer(24, 1); }
-  public ByteBuffer videoStreamInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 24, 1); }
+  public ByteVector videoStreamVector(ByteVector obj) { int o = __offset(22); return o != 0 ? obj.__assign(__vector(o), bb) : null; }
+  public ByteBuffer videoStreamAsByteBuffer() { return __vector_as_bytebuffer(22, 1); }
+  public ByteBuffer videoStreamInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 22, 1); }
 
   public static int createVideoMessage(FlatBufferBuilder builder,
       int videoNameOffset,
@@ -64,13 +61,11 @@ public final class VideoMessage extends Table {
       long videoHeight,
       long videoBitrate,
       long videoFps,
-      int videoCodecOffset,
       int videoCoverOffset,
       int videoStreamOffset) {
-    builder.startTable(11);
+    builder.startTable(10);
     VideoMessage.addVideoStream(builder, videoStreamOffset);
     VideoMessage.addVideoCover(builder, videoCoverOffset);
-    VideoMessage.addVideoCodec(builder, videoCodecOffset);
     VideoMessage.addVideoFps(builder, videoFps);
     VideoMessage.addVideoBitrate(builder, videoBitrate);
     VideoMessage.addVideoHeight(builder, videoHeight);
@@ -82,7 +77,7 @@ public final class VideoMessage extends Table {
     return VideoMessage.endVideoMessage(builder);
   }
 
-  public static void startVideoMessage(FlatBufferBuilder builder) { builder.startTable(11); }
+  public static void startVideoMessage(FlatBufferBuilder builder) { builder.startTable(10); }
   public static void addVideoName(FlatBufferBuilder builder, int videoNameOffset) { builder.addOffset(0, videoNameOffset, 0); }
   public static void addVideoSize(FlatBufferBuilder builder, long videoSize) { builder.addInt(1, (int) videoSize, (int) 0L); }
   public static void addVideoType(FlatBufferBuilder builder, int videoTypeOffset) { builder.addOffset(2, videoTypeOffset, 0); }
@@ -91,12 +86,11 @@ public final class VideoMessage extends Table {
   public static void addVideoHeight(FlatBufferBuilder builder, long videoHeight) { builder.addInt(5, (int) videoHeight, (int) 0L); }
   public static void addVideoBitrate(FlatBufferBuilder builder, long videoBitrate) { builder.addInt(6, (int) videoBitrate, (int) 0L); }
   public static void addVideoFps(FlatBufferBuilder builder, long videoFps) { builder.addInt(7, (int) videoFps, (int) 0L); }
-  public static void addVideoCodec(FlatBufferBuilder builder, int videoCodecOffset) { builder.addOffset(8, videoCodecOffset, 0); }
-  public static void addVideoCover(FlatBufferBuilder builder, int videoCoverOffset) { builder.addOffset(9, videoCoverOffset, 0); }
+  public static void addVideoCover(FlatBufferBuilder builder, int videoCoverOffset) { builder.addOffset(8, videoCoverOffset, 0); }
   public static int createVideoCoverVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createVideoCoverVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startVideoCoverVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
-  public static void addVideoStream(FlatBufferBuilder builder, int videoStreamOffset) { builder.addOffset(10, videoStreamOffset, 0); }
+  public static void addVideoStream(FlatBufferBuilder builder, int videoStreamOffset) { builder.addOffset(9, videoStreamOffset, 0); }
   public static int createVideoStreamVector(FlatBufferBuilder builder, byte[] data) { return builder.createByteVector(data); }
   public static int createVideoStreamVector(FlatBufferBuilder builder, ByteBuffer data) { return builder.createByteVector(data); }
   public static void startVideoStreamVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
