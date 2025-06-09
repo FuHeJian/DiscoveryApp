@@ -126,7 +126,7 @@ fun MessageMake(
     toUser: User,
     status: Int,
     unionDataType: Byte,
-    dataCreator: (builder: FlatBufferBuilder) -> Int
+    dataCreator: (builder: FlatBufferBuilder) -> Int = { builder: FlatBufferBuilder -> 0 }
 ): Message {
 
     return FlatBufferBuilder(0).run {
