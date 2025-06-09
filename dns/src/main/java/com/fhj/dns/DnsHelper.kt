@@ -3,7 +3,11 @@ package com.fhj.dns
 import android.os.Build
 import com.fhj.byteparse.flatbuffers.ChatChannel
 import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.User
+import com.fhj.byteparse.flatbuffers.ext.MessageMake
+import com.fhj.byteparse.flatbuffers.ext.TextMessageMake
 import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.logger.Logger
 import kotlinx.coroutines.Dispatchers
@@ -65,9 +69,9 @@ object DnsHelper {
 
     lateinit var channel: ChatChannel
 
-    val currentUser:User by lazy {
+    val currentUser: User by lazy {
         assert(::wifiAddress.isLateinit)
-        UserMake(Build.DEVICE, "test",  wifiAddress.toString())
+        UserMake(Build.DEVICE, "test", wifiAddress.toString())
     }
 
     val scope = Dispatchers.IO
@@ -107,11 +111,6 @@ object DnsHelper {
         val toUser = message.toUser()
     }
 
-    fun receiveMessage(){
-        channel.channel
-    }
-
-
     fun destroy() {
         socket.leaveGroup(GROUP_ADDRESS)
         socket.close()
@@ -119,7 +118,16 @@ object DnsHelper {
 
     suspend fun discovery() {
         if (!isInitSuccess) return
-
+        channel.chat(
+            MessageMake(
+                MessageType.DISCOVERY,
+                0,
+                currentUser,
+                null,
+                0,
+                MessageData.TextMessage,
+                { builder -> TextMessageMake(builder, "发现") })
+        )
     }
 
     suspend fun exposure() {

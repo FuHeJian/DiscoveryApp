@@ -123,7 +123,7 @@ fun MessageMake(
     type: Long,
     id: Long,
     fromUser: User,
-    toUser: User,
+    toUser: User?,
     status: Int,
     unionDataType: Byte,
     dataCreator: (builder: FlatBufferBuilder) -> Int = { builder: FlatBufferBuilder -> 0 }
@@ -131,7 +131,12 @@ fun MessageMake(
 
     return FlatBufferBuilder(0).run {
         val fromUserOffset = UserMakeOffset(this, fromUser.device(), fromUser.name(), fromUser.ip())
-        val toUserOffset = UserMakeOffset(this, toUser.device(), toUser.name(), toUser.ip())
+        val toUserOffset = if (toUser == null) 0 else UserMakeOffset(
+            this,
+            toUser.device(),
+            toUser.name(),
+            toUser.ip()
+        )
         finish(
             Message.createMessage(
                 this,
