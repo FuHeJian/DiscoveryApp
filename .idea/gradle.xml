@@ -16,6 +16,7 @@
             <option value="$PROJECT_DIR$/byteParse" />
             <option value="$PROJECT_DIR$/dns" />
             <option value="$PROJECT_DIR$/ppp" />
+            <option value="$PROJECT_DIR$/user" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -1,19 +1,16 @@
 package com.fhj.dns
 
-import android.content.Context
 import android.os.Build
 import com.fhj.byteparse.flatbuffers.ChatChannel
-import com.fhj.byteparse.flatbuffers.ChatServiceGrpc
+import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.logger.Logger
-import kotlinx.coroutines.suspendCancellableCoroutine
-import java.net.DatagramPacket
+import kotlinx.coroutines.Dispatchers
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
-import kotlin.coroutines.resume
 
 
 object DnsHelper {
@@ -66,7 +63,14 @@ object DnsHelper {
 
     lateinit var wifiAddress: InetAddress
 
-    lateinit var chnnel: ChatChannel
+    lateinit var channel: ChatChannel
+
+    val currentUser:User by lazy {
+        assert(::wifiAddress.isLateinit)
+        UserMake(Build.DEVICE, "test",  wifiAddress.toString())
+    }
+
+    val scope = Dispatchers.IO
 
     /**
      * 加入组播后，通过grpc通信，MulticastSocket设置了SocketOptions.SO_REUSEADDR选项，
@@ -79,7 +83,7 @@ object DnsHelper {
             if (!isMulticastSupported()) throw RuntimeException("不支持多播")
             wifiAddress = address
 
-            chnnel = ChatChannel(GROUP_IP, PORT, UserMake(Build.DEVICE, "test", address.toString()))
+            channel = ChatChannel(GROUP_IP, PORT)
             HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
             /**
              * 设置本地端口，应为要同时监听远程发送过来的消息，所以端口要设置的一样
@@ -97,8 +101,14 @@ object DnsHelper {
         }
     }
 
-    fun chat(user: User) {
+    fun chat(message: Message) {
+        //如果from是当前用户，则为发送事件，如果当前from为远程用户，则为接收事件
+        val fromUser = message.fromUser()
+        val toUser = message.toUser()
+    }
 
+    fun receiveMessage(){
+        channel.channel
     }
 
 
@@ -109,23 +119,12 @@ object DnsHelper {
 
     suspend fun discovery() {
         if (!isInitSuccess) return
-        val packet = DatagramPacket(ByteArray(HEADER_SIZE), HEADER_SIZE)
-        suspendCancellableCoroutine {
-            // 阻塞接收数据
-            it.resume(socket.receive(packet))
-        }
+
     }
 
     suspend fun exposure() {
         if (!isInitSuccess) return
-        val da = wifiAddress.address
-        val data = EXPOSURE_HEADER.plus(da)
-        Logger.log("发送成功 local ${byteToIp(da.take(4).toByteArray())}")
-        /**
-         * 设置发送数据和远程地址
-         */
 
-        chnnel.chat()
 
     }
 

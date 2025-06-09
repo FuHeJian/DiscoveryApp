@@ -19,7 +19,3 @@ plugins {
         apply(true)
     }
 }
-
-allprojects{
-    this.plugins.apply("com.google.devtools.ksp")
-}

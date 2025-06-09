@@ -24,9 +24,6 @@ import static io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall;
 
 /**
  */
-@javax.annotation.Generated(
-    value = "by gRPC proto compiler",
-    comments = "Source: message.fbs")
 public final class ChatServiceGrpc {
 
   private ChatServiceGrpc() {}

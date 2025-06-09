@@ -18,7 +18,7 @@ dependencies {
     }
 
     implementation("com.google.devtools.ksp:symbol-processing-api:${getKSPVersion()}")
-    implementation(libs.flatbuffers.java)//解析通信数据
+    api(libs.flatbuffers.java)//解析通信数据
     implementation(libs.flatbuffers.java.grpc)
     implementation(libs.grpc.stub)
     implementation(libs.ktor.client.core.jvm)//网络请求工具
