@@ -3,6 +3,9 @@ plugins{
     alias(libs.plugins.kotlin.android)
 }
 apply(from = file("../base.gradle"))
+android {
+    namespace = "com.fhj.byteparse"
+}
 dependencies {
 
     fun getKotlinVersion() = libs.versions.kotlin.get()

@@ -82,12 +82,21 @@ object DnsHelper {
      * 支持多个socket监听同一个端口，所以可以再使用grpc来通信
      *
      */
-    fun setInterface(address: InetAddress) {
+    suspend fun setInterface(address: InetAddress) {
         try {
             if (!isMulticastSupported()) throw RuntimeException("不支持多播")
             wifiAddress = address
 
-            channel = ChatChannel(GROUP_IP, PORT)
+            channel = ChatChannel(
+                GROUP_IP, PORT, MessageMake(
+                    MessageType.DISCOVERY,
+                    0,
+                    currentUser,
+                    null,
+                    0,
+                    MessageData.TextMessage,
+                    { builder -> TextMessageMake(builder, "发现") })
+            )
             HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
             /**
              * 设置本地端口，应为要同时监听远程发送过来的消息，所以端口要设置的一样
@@ -99,6 +108,7 @@ object DnsHelper {
             socket.joinGroup(GROUP_ADDRESS)
             isInitSuccess = true
             Logger.log("设置成功 ${NETINTERFACE}")
+            if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
         } catch (e: Exception) {
             Logger.log("设置失败 ${e}")
             isInitSuccess = false
@@ -116,24 +126,9 @@ object DnsHelper {
         socket.close()
     }
 
-    suspend fun discovery() {
-        if (!isInitSuccess) return
-        channel.chat(
-            MessageMake(
-                MessageType.DISCOVERY,
-                0,
-                currentUser,
-                null,
-                0,
-                MessageData.TextMessage,
-                { builder -> TextMessageMake(builder, "发现") })
-        )
-    }
-
-    suspend fun exposure() {
-        if (!isInitSuccess) return
-
-
+    private suspend fun discovery(): Boolean {
+        if (!isInitSuccess) return false
+        return channel.startObserverAndDiscovery()
     }
 
     fun byteToIp(bytes: ByteArray): String {
