@@ -15,6 +15,10 @@ import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
+import java.net.ServerSocket
+import java.net.Socket
+import java.net.SocketException
+import javax.net.ServerSocketFactory
 
 
 object DnsHelper {
@@ -95,7 +99,26 @@ object DnsHelper {
                     null,
                     0,
                     MessageData.TextMessage,
-                    { builder -> TextMessageMake(builder, "发现") })
+                    { builder -> TextMessageMake(builder, "发现") }),object : ServerSocketFactory(){
+                    override fun createServerSocket(port: Int): ServerSocket? {
+                        ServerSocket()
+                    }
+
+                    override fun createServerSocket(
+                        port: Int,
+                        backlog: Int
+                    ): ServerSocket? {
+                        TODO("Not yet implemented")
+                    }
+
+                    override fun createServerSocket(
+                        port: Int,
+                        backlog: Int,
+                        ifAddress: InetAddress?
+                    ): ServerSocket? {
+                        TODO("Not yet implemented")
+                    }
+                }
             )
             HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
             /**
@@ -106,6 +129,7 @@ object DnsHelper {
             socket = MulticastSocket(PORT)
             socket.networkInterface = NETINTERFACE
             socket.joinGroup(GROUP_ADDRESS)
+
             isInitSuccess = true
             Logger.log("设置成功 ${NETINTERFACE}")
             if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
@@ -148,4 +172,27 @@ object DnsHelper {
         return NETINTERFACE.supportsMulticast()
     }
 
+    fun makeSocket(): MulticastSocket{
+        socket = MulticastSocket(PORT)
+        socket.networkInterface = NETINTERFACE
+        socket.joinGroup(GROUP_ADDRESS)
+        return Socket()
+    }
+
+}
+
+class MulticastServerSocket(port:Int) : ServerSocket(port){
+    DatagramSocketFactory
+    override fun accept(): Socket? {
+        if (isClosed())
+            throw SocketException("Socket is closed");
+        if (!isBound())
+            throw SocketException("Socket is not bound yet")
+        val s=  DnsHelper.makeSocket()
+        implAccept(s)
+        return s
+    }
+    fun makeSocket(){
+
+    }
 }

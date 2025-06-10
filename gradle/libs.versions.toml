@@ -19,6 +19,7 @@ navigationKtx = "2.9.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 flatbuffers-java = { module = "com.google.flatbuffers:flatbuffers-java", version.ref = "flatbuffersJava" }
 flatbuffers-java-grpc = { module = "com.google.flatbuffers:flatbuffers-java-grpc", version.ref = "flatbuffersJavaGrpc" }
+grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpcStub" }
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpcStub" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

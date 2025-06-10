@@ -5,25 +5,31 @@ import com.fhj.byteparse.flatbuffers.ext.MessageMake
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import com.fhj.logger.Logger
+import io.grpc.InsecureServerCredentials
 import io.grpc.ServerBuilder
+import io.grpc.okhttp.OkHttpServerBuilder
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.net.InetAddress
+import java.net.ServerSocket
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+import javax.net.ServerSocketFactory
 import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
 import kotlin.coroutines.resume
 
-class ChatChannel(address: String, port: Int, val discoveryMessage: Message) {
+class ChatChannel(address: String, port: Int, val discoveryMessage: Message,socketFactory: ServerSocketFactory) {
 
     var channel: ManagedChannel =
         ManagedChannelBuilder.forAddress(address, port).enableRetry().build()
     var currentStream: StreamObserver<Message>? = null
     val messageQueue = ConcurrentHashMap<String, (MessageState) -> Unit>()
-    var chatService: io.grpc.Server = ServerBuilder
-        .forPort(port)
+    var chatService: io.grpc.Server = OkHttpServerBuilder
+        .forPort(port, InsecureServerCredentials.create())
+        .socketFactory(socketFactory)
         .addService(object : ChatServiceGrpc.ChatServiceImplBase() {
             override fun chat(
                 request: Message?,
