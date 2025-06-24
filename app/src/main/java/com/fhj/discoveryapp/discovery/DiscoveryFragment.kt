@@ -37,20 +37,6 @@ class DiscoveryFragment : BaseFragment<DiscoveryFragmentBinding>() {
         }
 
         lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            while (true) {
-                DnsHelper.exposure()
-                delay(5000)
-            }
-        }
-
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            while (true) {
-                DnsHelper.discovery()
-                delay(5000)
-            }
-        }
-
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
 
             WifiDetect.registerWifiDetect(requireContext())?.let {
                 DnsHelper.setInterface(it)

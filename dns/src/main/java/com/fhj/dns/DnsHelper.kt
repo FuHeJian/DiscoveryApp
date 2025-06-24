@@ -1,19 +1,24 @@
 package com.fhj.dns
 
-import android.content.Context
 import android.os.Build
 import com.fhj.byteparse.flatbuffers.ChatChannel
-import com.fhj.byteparse.flatbuffers.ChatServiceGrpc
+import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.User
+import com.fhj.byteparse.flatbuffers.ext.MessageMake
+import com.fhj.byteparse.flatbuffers.ext.TextMessageMake
 import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.logger.Logger
-import kotlinx.coroutines.suspendCancellableCoroutine
-import java.net.DatagramPacket
+import kotlinx.coroutines.Dispatchers
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
-import kotlin.coroutines.resume
+import java.net.ServerSocket
+import java.net.Socket
+import java.net.SocketException
+import javax.net.ServerSocketFactory
 
 
 object DnsHelper {
@@ -66,7 +71,14 @@ object DnsHelper {
 
     lateinit var wifiAddress: InetAddress
 
-    lateinit var chnnel: ChatChannel
+    lateinit var channel: ChatChannel
+
+    val currentUser: User by lazy {
+        assert(::wifiAddress.isLateinit)
+        UserMake(Build.DEVICE, "test", wifiAddress.toString())
+    }
+
+    val scope = Dispatchers.IO
 
     /**
      * 加入组播后，通过grpc通信，MulticastSocket设置了SocketOptions.SO_REUSEADDR选项，
@@ -74,12 +86,40 @@ object DnsHelper {
      * 支持多个socket监听同一个端口，所以可以再使用grpc来通信
      *
      */
-    fun setInterface(address: InetAddress) {
+    suspend fun setInterface(address: InetAddress) {
         try {
             if (!isMulticastSupported()) throw RuntimeException("不支持多播")
             wifiAddress = address
 
-            chnnel = ChatChannel(GROUP_IP, PORT, UserMake(Build.DEVICE, "test", address.toString()))
+            channel = ChatChannel(
+                GROUP_IP, PORT, MessageMake(
+                    MessageType.DISCOVERY,
+                    0,
+                    currentUser,
+                    null,
+                    0,
+                    MessageData.TextMessage,
+                    { builder -> TextMessageMake(builder, "发现") }),object : ServerSocketFactory(){
+                    override fun createServerSocket(port: Int): ServerSocket? {
+                        ServerSocket()
+                    }
+
+                    override fun createServerSocket(
+                        port: Int,
+                        backlog: Int
+                    ): ServerSocket? {
+                        TODO("Not yet implemented")
+                    }
+
+                    override fun createServerSocket(
+                        port: Int,
+                        backlog: Int,
+                        ifAddress: InetAddress?
+                    ): ServerSocket? {
+                        TODO("Not yet implemented")
+                    }
+                }
+            )
             HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
             /**
              * 设置本地端口，应为要同时监听远程发送过来的消息，所以端口要设置的一样
@@ -89,44 +129,30 @@ object DnsHelper {
             socket = MulticastSocket(PORT)
             socket.networkInterface = NETINTERFACE
             socket.joinGroup(GROUP_ADDRESS)
+
             isInitSuccess = true
             Logger.log("设置成功 ${NETINTERFACE}")
+            if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
         } catch (e: Exception) {
             Logger.log("设置失败 ${e}")
             isInitSuccess = false
         }
     }
 
-    fun chat(user: User) {
-
+    fun chat(message: Message) {
+        //如果from是当前用户，则为发送事件，如果当前from为远程用户，则为接收事件
+        val fromUser = message.fromUser()
+        val toUser = message.toUser()
     }
-
 
     fun destroy() {
         socket.leaveGroup(GROUP_ADDRESS)
         socket.close()
     }
 
-    suspend fun discovery() {
-        if (!isInitSuccess) return
-        val packet = DatagramPacket(ByteArray(HEADER_SIZE), HEADER_SIZE)
-        suspendCancellableCoroutine {
-            // 阻塞接收数据
-            it.resume(socket.receive(packet))
-        }
-    }
-
-    suspend fun exposure() {
-        if (!isInitSuccess) return
-        val da = wifiAddress.address
-        val data = EXPOSURE_HEADER.plus(da)
-        Logger.log("发送成功 local ${byteToIp(da.take(4).toByteArray())}")
-        /**
-         * 设置发送数据和远程地址
-         */
-
-        chnnel.chat()
-
+    private suspend fun discovery(): Boolean {
+        if (!isInitSuccess) return false
+        return channel.startObserverAndDiscovery()
     }
 
     fun byteToIp(bytes: ByteArray): String {
@@ -146,4 +172,27 @@ object DnsHelper {
         return NETINTERFACE.supportsMulticast()
     }
 
+    fun makeSocket(): MulticastSocket{
+        socket = MulticastSocket(PORT)
+        socket.networkInterface = NETINTERFACE
+        socket.joinGroup(GROUP_ADDRESS)
+        return Socket()
+    }
+
+}
+
+class MulticastServerSocket(port:Int) : ServerSocket(port){
+    DatagramSocketFactory
+    override fun accept(): Socket? {
+        if (isClosed())
+            throw SocketException("Socket is closed");
+        if (!isBound())
+            throw SocketException("Socket is not bound yet")
+        val s=  DnsHelper.makeSocket()
+        implAccept(s)
+        return s
+    }
+    fun makeSocket(){
+
+    }
 }

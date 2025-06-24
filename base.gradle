@@ -25,7 +25,9 @@ android {
     }
 
     dependencies {
-        if (displayName != "Logger")
+        if (name != "Logger") {
+            println("我的" + name)
             implementation project(":Logger")
+        }
     }
 }
