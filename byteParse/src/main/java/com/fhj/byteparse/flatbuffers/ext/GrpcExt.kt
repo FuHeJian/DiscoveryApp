@@ -7,6 +7,7 @@ import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageData
 import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
+import com.fhj.byteparse.flatbuffers.TextMessage
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.VideoMessage
 import com.google.flatbuffers.FlatBufferBuilder

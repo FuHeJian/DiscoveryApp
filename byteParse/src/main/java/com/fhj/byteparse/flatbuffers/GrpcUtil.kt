@@ -7,6 +7,7 @@ import io.grpc.ManagedChannelBuilder
 import com.fhj.logger.Logger
 import io.grpc.InsecureServerCredentials
 import io.grpc.ServerBuilder
+import io.grpc.cronet.CronetChannelBuilder
 import io.grpc.okhttp.OkHttpServerBuilder
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.coroutineScope
@@ -24,7 +25,7 @@ import kotlin.coroutines.resume
 class ChatChannel(address: String, port: Int, val discoveryMessage: Message,socketFactory: ServerSocketFactory) {
 
     var channel: ManagedChannel =
-        ManagedChannelBuilder.forAddress(address, port).enableRetry().build()
+        CronetChannelBuilder.forAddress(address, port).enableRetry().build()
     var currentStream: StreamObserver<Message>? = null
     val messageQueue = ConcurrentHashMap<String, (MessageState) -> Unit>()
     var chatService: io.grpc.Server = OkHttpServerBuilder
