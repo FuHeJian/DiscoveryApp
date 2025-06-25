@@ -4,14 +4,10 @@ import com.fhj.byteparse.flatbuffers.AudioMessage
 import com.fhj.byteparse.flatbuffers.FileMessage
 import com.fhj.byteparse.flatbuffers.ImageMessage
 import com.fhj.byteparse.flatbuffers.Message
-import com.fhj.byteparse.flatbuffers.MessageData
-import com.fhj.byteparse.flatbuffers.MessageStatus
-import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.TextMessage
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.VideoMessage
 import com.google.flatbuffers.FlatBufferBuilder
-import java.util.Objects
 
 fun UserMake(device: String, name: String, ip: String): User {
     return FlatBufferBuilder(0).run {
