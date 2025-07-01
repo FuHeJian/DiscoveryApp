@@ -42,14 +42,17 @@ object NettyUtil {
     lateinit var server: Bootstrap
     lateinit var serverCh: Channel
 
+    lateinit var groupAddress: InetSocketAddress
+
     fun setUdpConfig(config: UdpSocketConfig) {
         //强制private static final int JAVA_VERSION  设置成java8
         PlatformDependent::class.java.getDeclaredField("JAVA_VERSION").apply {
             isAccessible = true
             set(null, 8)
         }
+        groupAddress = config.groupAddress
         setClientConfig(config)
-        setServerConfig(config)
+//        setServerConfig(config)
     }
 
     fun setClientConfig(config: UdpSocketConfig) {
@@ -59,10 +62,10 @@ object NettyUtil {
         bootStrap.group(loop).channel(NioDatagramChannel::class.java)
             .option(
                 ChannelOption.SO_REUSEADDR, true
-            ).handler(object :  SimpleChannelInboundHandler<Object>() {
+            ).handler(object :  SimpleChannelInboundHandler<io.netty.channel.socket.DatagramPacket>() {
                 override fun messageReceived(
                     ctx: ChannelHandlerContext?,
-                    msg: Object?
+                    msg: io.netty.channel.socket.DatagramPacket?
                 ) {
                     Logger.log("client接受到消息$msg")
                 }
@@ -108,7 +111,9 @@ object NettyUtil {
                     promise: ChannelPromise?
                 ) {
                     super.write(ctx, msg, promise)
+                    Logger.log("server准备写入 write")
                 }
+
             })
         server = bootStrap
         serverCh = bootStrap.bind(config.port).sync().channel()
@@ -116,7 +121,8 @@ object NettyUtil {
     }
 
     fun send(data: ByteArray) {
-        clientCh.writeAndFlush(Unpooled.wrappedBuffer(data)).sync()
+        //由于不使用DatagramPacket包装，会调用socket.write,但是udp是无连接，无法执行write，只能receive和send，所以发送其他形式数据对象会报错
+        clientCh.writeAndFlush(io.netty.channel.socket.DatagramPacket(Unpooled.wrappedBuffer(data),groupAddress)).sync()
     }
 
     fun byteBufferToByteBuf(){
