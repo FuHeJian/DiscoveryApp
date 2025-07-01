@@ -1,5 +1,7 @@
 package com.fhj.discoveryapp.discovery
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -18,6 +20,7 @@ class DiscoveryFragment : BaseFragment<DiscoveryFragmentBinding>() {
 
     var adapter = DiscoveryAdapter()
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindingCreated() {
         binding.recyclerView.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)

@@ -1,6 +1,7 @@
 package com.fhj.dns
 
 import android.os.Build
+import androidx.annotation.RequiresApi
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageData
 import com.fhj.byteparse.flatbuffers.MessageType
@@ -12,13 +13,16 @@ import com.fhj.byteparse.flatbuffers.ext.TextMessageMake
 import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.logger.Logger
 import kotlinx.coroutines.Dispatchers
+import java.net.DatagramPacket
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.MulticastSocket
 import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
+import java.nio.channels.MulticastChannel
 import javax.net.ServerSocketFactory
 
 
@@ -57,7 +61,7 @@ object DnsHelper {
      */
     var PORT = 8888
     val GROUP_IP = "239.255.42.99"
-    val ADDRESS = Inet4Address.getByName(GROUP_IP)
+    val ADDRESS = InetSocketAddress(GROUP_IP, PORT)
 
     val GROUP_ADDRESS = ADDRESS
 
@@ -66,8 +70,6 @@ object DnsHelper {
     val TITLE_SIZE = maxOf(EXPOSURE_TITLE.length, DISCOVERY_TITLE.length, CLOSE_TITLE.length)
 
     var HEADER_SIZE = TITLE_SIZE + 4
-
-    lateinit var socket: MulticastSocket
     var isInitSuccess = false
 
     lateinit var wifiAddress: InetAddress
@@ -80,33 +82,35 @@ object DnsHelper {
     val scope = Dispatchers.IO
 
     /**
-     * 加入组播后，通过grpc通信，MulticastSocket设置了SocketOptions.SO_REUSEADDR选项，
+     * 加入组播后，MulticastSocket设置了SocketOptions.SO_REUSEADDR选项，
      *
-     * 支持多个socket监听同一个端口，所以可以再使用grpc来通信
+     * 支持多个socket监听同一个端口
      *
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     suspend fun setInterface(address: InetAddress) {
-        try {
-            if (!isMulticastSupported()) throw RuntimeException("不支持多播")
-            wifiAddress = address
+//        try {
+//            if (!isMulticastSupported()) throw RuntimeException("不支持多播")
+//            wifiAddress = address
+//
+//            HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
+//            NettyUtil.setUdpConfig(UdpSocketConfig(NETINTERFACE,GROUP_ADDRESS,address,PORT))
+//            isInitSuccess = true
+//            Logger.log("设置成功 ${NETINTERFACE}")
+//            if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
+//        } catch (e: RuntimeException) {
+//            Logger.log("设置失败 ${e}")
+//            isInitSuccess = false
+//        }
 
-            HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
-            /**
-             * 设置本地端口，应为要同时监听远程发送过来的消息，所以端口要设置的一样
-             *
-             * 最好不要绑定具体ip，因为wifi有两个地址一个ipv4和ipv6,指定networkInterface即可
-             */
-            socket = MulticastSocket(PORT)
-            socket.networkInterface = NETINTERFACE
-            socket.joinGroup(GROUP_ADDRESS)
-            NettyUtil.setUdpConfig(UdpSocketConfig(socket.channel,NETINTERFACE,GROUP_ADDRESS,address,PORT))
-            isInitSuccess = true
-            Logger.log("设置成功 ${NETINTERFACE}")
-            if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
-        } catch (e: Exception) {
-            Logger.log("设置失败 ${e}")
-            isInitSuccess = false
-        }
+        if (!isMulticastSupported()) throw RuntimeException("不支持多播")
+        wifiAddress = address
+
+        HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
+        NettyUtil.setUdpConfig(UdpSocketConfig(NETINTERFACE, GROUP_ADDRESS, address, PORT))
+        isInitSuccess = true
+        Logger.log("设置成功 ${NETINTERFACE}")
+        if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
     }
 
     fun chat(message: Message) {
@@ -115,14 +119,16 @@ object DnsHelper {
         val toUser = message.toUser()
     }
 
-    fun destroy() {
-        socket.leaveGroup(GROUP_ADDRESS)
-        socket.close()
-    }
-
     private suspend fun discovery(): Boolean {
         if (!isInitSuccess) return false
-        return
+        val da = wifiAddress.address
+        val data = EXPOSURE_HEADER.plus(da)
+        Logger.log("发送成功 local ${byteToIp(da.take(4).toByteArray())}")
+        /**
+         * 设置发送数据和远程地址
+         */
+        NettyUtil.send(data)
+        return true
     }
 
     fun byteToIp(bytes: ByteArray): String {

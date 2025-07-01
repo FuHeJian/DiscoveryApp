@@ -17,6 +17,16 @@ android {
     }
 
     viewBinding.enable = true
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
 }
 
 dependencies {
