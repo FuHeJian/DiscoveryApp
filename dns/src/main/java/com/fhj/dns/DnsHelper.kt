@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.cs.NettyUtil
@@ -127,7 +128,15 @@ object DnsHelper {
         /**
          * 设置发送数据和远程地址
          */
-        NettyUtil.send(data)
+        NettyUtil.send(MessageMake(
+            MessageType.DISCOVERY,
+            0L,
+            UserMake(Build.MODEL, "fhj", da.toString()),
+            UserMake("to", "test", "toip"),
+            status = MessageStatus.SENDING,
+            unionDataType = MessageData.TextMessage,
+            dataCreator = {TextMessageMake(it,"hello world")},
+        ))
         return true
     }
 
