@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.navigation.fragment.ui)
     implementation(project(":Base"))
     implementation(project(":dns"))
+    implementation(project(":byteParse"))
 //    ksp(project(path = ":byteParse"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

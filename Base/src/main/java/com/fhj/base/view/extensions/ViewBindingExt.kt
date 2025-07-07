@@ -29,24 +29,24 @@ fun <T : ViewBinding> BaseFragment<T>.getViewBinding(
     return null
 }
 
-fun <T : ViewBinding> BaseActivity<T>.getViewBinding(
-    inflater: LayoutInflater,
-    container: ViewGroup?
-): T? {
-    val type = this.javaClass.genericSuperclass
-    try {
-        if (type is ParameterizedType) {
-            val c = type.actualTypeArguments[0] as Class<T>
-            return c.getDeclaredMethod(
-                "inflate",
-                LayoutInflater::class.java,
-                ViewGroup::class.java,
-                Boolean::class.java
-            ).invoke(null, inflater, container, false) as? T
-        }
-    } catch (e: Exception) {
-        throw e
-    }
-
-    return null
-}
+//fun <T : ViewBinding> BaseActivity<T>.getViewBinding(
+//    inflater: LayoutInflater,
+//    container: ViewGroup?
+//): T? {
+//    val type = this.javaClass.genericSuperclass
+//    try {
+//        if (type is ParameterizedType) {
+//            val c = type.actualTypeArguments[0] as Class<T>
+//            return c.getDeclaredMethod(
+//                "inflate",
+//                LayoutInflater::class.java,
+//                ViewGroup::class.java,
+//                Boolean::class.java
+//            ).invoke(null, inflater, container, false) as? T
+//        }
+//    } catch (e: Exception) {
+//        throw e
+//    }
+//
+//    return null
+//}

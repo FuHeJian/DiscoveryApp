@@ -15,8 +15,8 @@ import io.netty.util.internal.PlatformDependent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.nio.ByteBuffer
@@ -31,7 +31,7 @@ object NettyUtil {
 
     lateinit var groupAddress: InetSocketAddress
 
-    val dispatChannel = kotlinx.coroutines.channels.Channel<Message>()
+    val dispatchChannel = MutableSharedFlow<Message>()
     val IOSCOPE = CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { a, b ->
         Logger.log("fatal!! $a $b")
     })
@@ -60,11 +60,11 @@ object NettyUtil {
                     ctx: ChannelHandlerContext?,
                     msg: io.netty.channel.socket.DatagramPacket?
                 ) {
-                    Logger.log("client接受到消息$msg")
                     //过滤发送消息
                     msg?.also {
                         val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
-                        if(m.fromUser().ip() != config.source.toString()){
+                        if(m.fromUser().ip() != config.source){
+                            Logger.log("client接受到消息$msg")
                             dispatchMessage(m)
                         }
                     }
@@ -134,7 +134,7 @@ object NettyUtil {
 
     fun dispatchMessage(msg: Message){
         IOSCOPE.launch {
-            dispatChannel.send(msg)
+            dispatchChannel.emit(msg)
         }
     }
 
@@ -143,6 +143,6 @@ object NettyUtil {
 data class UdpSocketConfig(
     val networkInterface: NetworkInterface,
     val groupAddress: InetSocketAddress,
-    val source: InetAddress,
+    val source: String,
     val port: Int
 )
