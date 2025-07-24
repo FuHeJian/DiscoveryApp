@@ -7,6 +7,8 @@ apply(from = file("../base.gradle"))
 android {
     namespace = "com.fhj.player"
 
+    ndkVersion = "28.1.13356709"
+
     defaultConfig {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
