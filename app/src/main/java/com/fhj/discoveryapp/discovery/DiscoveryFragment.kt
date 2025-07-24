@@ -39,7 +39,7 @@ class DiscoveryFragment : BaseFragment<DiscoveryFragmentBinding>() {
         //binding.recyclerView绘制分割线
         binding.recyclerView.addItemDecoration(MaterialDividerItemDecoration(requireContext(),
             DividerItemDecoration.VERTICAL).apply{
-            dividerColor = requireContext().getColor(R.color.divider_line)
+            dividerColor = requireContext().getColor(R.color.colorDivider)
             dividerThickness = 1.dp()
             isLastItemDecorated = false
             this.dividerInsetStart = 15.dp()

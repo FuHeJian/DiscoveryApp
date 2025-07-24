@@ -18,4 +18,5 @@ plugins {
         this.version(getKSPVersion())
         apply(true)
     }
+    alias(libs.plugins.compose.compiler) apply false
 }

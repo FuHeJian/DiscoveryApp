@@ -1,4 +1,5 @@
 [versions]
+activityCompose = "1.10.1"
 agp = "8.7.2"
 flatbuffersJava = "25.2.10"
 flatbuffersJavaGrpc = "2.0.3"
@@ -13,10 +14,17 @@ appcompat = "1.7.0"
 kotlinpoet = "2.2.0"
 ktorClientCoreJvm = "3.1.3"
 material = "1.12.0"
+materialIconsExtended = "1.7.8"
+materialVersion = "1.8.3"
 navigationKtx = "2.9.0"
+uiTooling = "1.8.3"
 
 [libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-ui = { module = "androidx.compose.ui:ui", version.ref = "materialVersion" }
 flatbuffers-java = { module = "com.google.flatbuffers:flatbuffers-java", version.ref = "flatbuffersJava" }
 flatbuffers-java-grpc = { module = "com.google.flatbuffers:flatbuffers-java-grpc", version.ref = "flatbuffersJavaGrpc" }
 grpc-okhttp = { module = "io.grpc:grpc-okhttp", version.ref = "grpcStub" }
@@ -34,9 +42,11 @@ ktor-client-logging-jvm = { module = "io.ktor:ktor-client-logging-jvm", version.
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationKtx" }
 navigation-fragment-ui = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationKtx" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 

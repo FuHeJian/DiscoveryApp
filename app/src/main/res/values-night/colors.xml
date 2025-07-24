@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 高级灰紫色主题（夜间模式） -->
+    <color name="colorPrimary">#B39DDB</color>
+    <color name="colorPrimaryDark">#5E548E</color>
+    <color name="colorAccent">#C7A4F5</color>
+    <color name="colorSecondary">#7B5FA1</color>
+    <color name="colorSecondaryDark">#232136</color>
+    <color name="colorBackground">#181825</color>
+    <color name="colorSurface">#232136</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorOnSecondary">#E0E0E0</color>
+    <color name="colorOnBackground">#F5F5F5</color>
+    <color name="colorOnSurface">#C7A4F5</color>
+    <color name="colorDivider">#3E3A5A</color>
+    <color name="colorError">#FF6F91</color>
+    <color name="colorSuccess">#7ED6A5</color>
+    <color name="colorWarning">#FFD54F</color>
+</resources> 

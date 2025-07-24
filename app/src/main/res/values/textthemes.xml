@@ -3,14 +3,14 @@
 
     <style name="text_title_base">
         <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/text_title</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
     </style>
     <style name="body_text_base">
-        <item name="android:textColor">@color/text_title</item>x
+        <item name="android:textColor">@color/colorOnPrimary</item>x
     </style>
 
     <style name="info_text_base">
-        <item name="android:textColor">@color/text_info</item>x
+        <item name="android:textColor">@color/colorOnPrimary</item>
     </style>
 
     <style name="H1" parent="text_title_base">
