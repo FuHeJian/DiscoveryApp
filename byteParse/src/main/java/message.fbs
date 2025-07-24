@@ -36,6 +36,7 @@ enum MessageStatus:ubyte {
 
 table User{
     device:string;
+    deviceSerial:string;
     name:string;
     ip:string;
 }
@@ -93,11 +94,4 @@ table Message {
     toUser:User;
     status:MessageStatus;
     data:MessageData;
-}
-
-// 定义 gRPC 服务
-rpc_service ChatService {
-  // 定义双向流 RPC。
-  // 注意这里的语法是 (streaming: "duplex")
-  chat(Message):Message (streaming: "duplex");
 }

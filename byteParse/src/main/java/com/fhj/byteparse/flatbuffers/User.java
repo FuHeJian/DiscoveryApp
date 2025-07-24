@@ -30,28 +30,34 @@ public final class User extends Table {
   public String device() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer deviceAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
   public ByteBuffer deviceInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 4, 1); }
-  public String name() { int o = __offset(6); return o != 0 ? __string(o + bb_pos) : null; }
-  public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(6, 1); }
-  public ByteBuffer nameInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 6, 1); }
-  public String ip() { int o = __offset(8); return o != 0 ? __string(o + bb_pos) : null; }
-  public ByteBuffer ipAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
-  public ByteBuffer ipInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
+  public String deviceSerial() { int o = __offset(6); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer deviceSerialAsByteBuffer() { return __vector_as_bytebuffer(6, 1); }
+  public ByteBuffer deviceSerialInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 6, 1); }
+  public String name() { int o = __offset(8); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(8, 1); }
+  public ByteBuffer nameInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 8, 1); }
+  public String ip() { int o = __offset(10); return o != 0 ? __string(o + bb_pos) : null; }
+  public ByteBuffer ipAsByteBuffer() { return __vector_as_bytebuffer(10, 1); }
+  public ByteBuffer ipInByteBuffer(ByteBuffer _bb) { return __vector_in_bytebuffer(_bb, 10, 1); }
 
   public static int createUser(FlatBufferBuilder builder,
       int deviceOffset,
+      int deviceSerialOffset,
       int nameOffset,
       int ipOffset) {
-    builder.startTable(3);
+    builder.startTable(4);
     User.addIp(builder, ipOffset);
     User.addName(builder, nameOffset);
+    User.addDeviceSerial(builder, deviceSerialOffset);
     User.addDevice(builder, deviceOffset);
     return User.endUser(builder);
   }
 
-  public static void startUser(FlatBufferBuilder builder) { builder.startTable(3); }
+  public static void startUser(FlatBufferBuilder builder) { builder.startTable(4); }
   public static void addDevice(FlatBufferBuilder builder, int deviceOffset) { builder.addOffset(0, deviceOffset, 0); }
-  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(1, nameOffset, 0); }
-  public static void addIp(FlatBufferBuilder builder, int ipOffset) { builder.addOffset(2, ipOffset, 0); }
+  public static void addDeviceSerial(FlatBufferBuilder builder, int deviceSerialOffset) { builder.addOffset(1, deviceSerialOffset, 0); }
+  public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(2, nameOffset, 0); }
+  public static void addIp(FlatBufferBuilder builder, int ipOffset) { builder.addOffset(3, ipOffset, 0); }
   public static int endUser(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

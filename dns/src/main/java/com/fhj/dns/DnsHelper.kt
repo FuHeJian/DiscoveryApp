@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.cs.NettyUtil
@@ -11,6 +12,7 @@ import com.fhj.byteparse.flatbuffers.cs.UdpSocketConfig
 import com.fhj.byteparse.flatbuffers.ext.MessageMake
 import com.fhj.byteparse.flatbuffers.ext.TextMessageMake
 import com.fhj.byteparse.flatbuffers.ext.UserMake
+import com.fhj.id.MessageIdManager
 import com.fhj.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import java.net.DatagramPacket
@@ -73,11 +75,7 @@ object DnsHelper {
     var isInitSuccess = false
 
     lateinit var wifiAddress: InetAddress
-
-    val currentUser: User by lazy {
-        assert(::wifiAddress.isLateinit)
-        UserMake(Build.DEVICE, "test", wifiAddress.toString())
-    }
+    lateinit var me: User
 
     val scope = Dispatchers.IO
 
@@ -107,9 +105,9 @@ object DnsHelper {
         wifiAddress = address
 
         HEADER_SIZE = TITLE_SIZE + (wifiAddress.address?.size ?: 0)
-        NettyUtil.setUdpConfig(UdpSocketConfig(NETINTERFACE, GROUP_ADDRESS, address, PORT))
+        NettyUtil.setUdpConfig(UdpSocketConfig(NETINTERFACE, GROUP_ADDRESS, byteToIp(wifiAddress.address), PORT))
         isInitSuccess = true
-        Logger.log("设置成功 ${NETINTERFACE}")
+        me = UserMake(Build.MODEL, Build.FINGERPRINT,wifiAddress.toString(), byteToIp(wifiAddress.address))
         if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
     }
 
@@ -119,15 +117,20 @@ object DnsHelper {
         val toUser = message.toUser()
     }
 
-    private suspend fun discovery(): Boolean {
+    suspend fun discovery(): Boolean {
         if (!isInitSuccess) return false
-        val da = wifiAddress.address
-        val data = EXPOSURE_HEADER.plus(da)
-        Logger.log("发送成功 local ${byteToIp(da.take(4).toByteArray())}")
+        val da = wifiAddress
         /**
          * 设置发送数据和远程地址
          */
-        NettyUtil.send(data)
+        NettyUtil.send(MessageMake(
+            MessageType.DISCOVERY,
+            -1,
+            me,
+            null,
+            status = MessageStatus.SENDING,
+            unionDataType = MessageData.NONE,
+        ))
         return true
     }
 
@@ -141,7 +144,6 @@ object DnsHelper {
             }
         }
         return ip.toString()
-
     }
 
     fun isMulticastSupported(): Boolean {

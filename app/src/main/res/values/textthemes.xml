@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="text_title_base">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_title</item>
+    </style>
+    <style name="body_text_base">
+        <item name="android:textColor">@color/text_title</item>x
+    </style>
+
+    <style name="info_text_base">
+        <item name="android:textColor">@color/text_info</item>x
+    </style>
+
+    <style name="H1" parent="text_title_base">
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="H2" parent="text_title_base">
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="H3" parent="text_title_base">
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="H4" parent="text_title_base">
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="normal_title" parent="H4">
+
+    </style>
+
+    <style name="body" parent="body_text_base">
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="info" parent="info_text_base">
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>

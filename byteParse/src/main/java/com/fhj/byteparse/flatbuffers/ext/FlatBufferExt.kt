@@ -4,24 +4,26 @@ import com.fhj.byteparse.flatbuffers.AudioMessage
 import com.fhj.byteparse.flatbuffers.FileMessage
 import com.fhj.byteparse.flatbuffers.ImageMessage
 import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageData
 import com.fhj.byteparse.flatbuffers.TextMessage
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.VideoMessage
 import com.google.flatbuffers.FlatBufferBuilder
 
-fun UserMake(device: String, name: String, ip: String): User {
+fun UserMake(device: String, deviceSerial:String,name: String, ip: String): User {
     return FlatBufferBuilder(0).run {
-        finish(UserMakeOffset(this, device, name, ip))
+        finish(UserMakeOffset(this, device, deviceSerial,name, ip))
         User.getRootAsUser(this.dataBuffer())
     }
 }
 
-fun UserMakeOffset(builder: FlatBufferBuilder, device: String, name: String, ip: String): Int {
+fun UserMakeOffset(builder: FlatBufferBuilder, device: String, deviceSerial:String,name: String, ip: String): Int {
     return builder.run {
         val deviceOffset = this.createString(device)
+        val deviceSerialOffset = this.createString(deviceSerial)
         val nameOffset = this.createString(name)
         val ipOffset = this.createString(ip)
-        User.createUser(this, deviceOffset, nameOffset, ipOffset)
+        User.createUser(this, deviceOffset, deviceSerialOffset,nameOffset, ipOffset)
     }
 }
 
@@ -127,10 +129,11 @@ fun MessageMake(
 ): Message {
 
     return FlatBufferBuilder(0).run {
-        val fromUserOffset = UserMakeOffset(this, fromUser.device(), fromUser.name(), fromUser.ip())
+        val fromUserOffset = UserMakeOffset(this, fromUser.device(), fromUser.deviceSerial(),fromUser.name(), fromUser.ip())
         val toUserOffset = if (toUser == null) 0 else UserMakeOffset(
             this,
             toUser.device(),
+            toUser.deviceSerial(),
             toUser.name(),
             toUser.ip()
         )
@@ -147,5 +150,28 @@ fun MessageMake(
             )
         )
         Message.getRootAsMessage(this.dataBuffer())
+    }
+}
+
+fun Message.compare(message: Message?) = if(message==null) false else this.id() == message.id() && this.fromUser().compare(message.fromUser())
+fun User.compare(user: User) = this.ip() == user.ip() && this.deviceSerial() == this.deviceSerial()
+fun User.getKey() = "${ip()}-${deviceSerial()}}"
+fun Message.getMessageInfo():String{
+    return when(this.dataType()){
+        MessageData.TextMessage ->{
+            (data(TextMessage()) as TextMessage).text()
+        }
+        MessageData.ImageMessage ->{
+            "[图片 ${(data(ImageMessage()) as ImageMessage).imageName()}]"
+        }
+        MessageData.AudioMessage ->{
+            "[音频]"
+        }
+        MessageData.VideoMessage ->{
+            "[视频 ${(data(VideoMessage()) as VideoMessage).videoName()}]"
+        }
+
+        else -> ""
+
     }
 }

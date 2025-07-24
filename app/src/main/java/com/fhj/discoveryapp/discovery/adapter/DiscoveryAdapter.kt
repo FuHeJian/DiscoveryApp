@@ -5,39 +5,41 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageStatus
+import com.fhj.byteparse.flatbuffers.MessageType
+import com.fhj.byteparse.flatbuffers.TextMessage
+import com.fhj.byteparse.flatbuffers.User
+import com.fhj.byteparse.flatbuffers.ext.compare
+import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
 import com.fhj.discoveryapp.databinding.DiscoveryAdapterNormalItemBinding
+import com.fhj.user.UserData
 
-object DiscoveryAdapterDiffCallback :
-    DiffUtil.ItemCallback<DiscoveryAdapter.DiscoveryAdapterItem>() {
-    override fun areItemsTheSame(
-        oldItem: DiscoveryAdapter.DiscoveryAdapterItem,
-        newItem: DiscoveryAdapter.DiscoveryAdapterItem
-    ): Boolean {
-        return oldItem == newItem
-    }
+data class DiscoveryAdapterItem(val currentMessage: Message?, val user: UserData) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-    override fun areContentsTheSame(
-        oldItem: DiscoveryAdapter.DiscoveryAdapterItem,
-        newItem: DiscoveryAdapter.DiscoveryAdapterItem
-    ): Boolean {
-        return oldItem == newItem
+        other as DiscoveryAdapterItem
+
+        if (currentMessage?.compare(other.currentMessage) == false) return false
+        if (user != other.user) return false
+
+        return true
     }
 }
 
 class DiscoveryAdapter :
-    ListAdapter<DiscoveryAdapter.DiscoveryAdapterItem, DiscoveryAdapter.ViewHolder>(
-        DiscoveryAdapterDiffCallback
-    ) {
+    RecyclerView.Adapter<DiscoveryAdapter.ViewHolder>() {
+
+    val currentList = ArrayList<DiscoveryAdapterItem>()
+
+    override fun getItemCount() = currentList.size
 
     class ViewHolder(val itemView: DiscoveryAdapterNormalItemBinding) :
         RecyclerView.ViewHolder(itemView.root) {
 
-    }
-
-    class DiscoveryAdapterItem(var ip: String = "", var state: String = "") {
-        override fun equals(other: Any?): Boolean {
-            return super.equals(other)
-        }
     }
 
     override fun onCreateViewHolder(
@@ -57,6 +59,56 @@ class DiscoveryAdapter :
         holder: ViewHolder,
         position: Int
     ) {
-        holder.itemView.ip.text = getItem(position)?.let { it.ip + " ---- " + it.state }
+        holder.itemView.run {
+            val item = currentList[position]
+            userName.text = "${item.user.user.name()}(${item.user.user.ip()})"
+            latestMessage.text = "${item.currentMessage?.getMessageInfo()}"
+            status.text = when (item.currentMessage?.status()) {
+                MessageStatus.SENDING -> {
+                    "正在发送"
+                }
+
+                else -> ""
+            }
+
+            root.setOnClickListener {
+                itemClickListener?.onItemClick(item)
+            }
+        }
+
+    }
+
+    fun addItem(item: DiscoveryAdapterItem) {
+        if (currentList.contains(item)) {
+            updateItem(item)
+            return
+        }
+        currentList.add(item)
+        notifyItemInserted(currentList.size)
+    }
+
+    fun removeItem(item: DiscoveryAdapterItem) {
+        val index = currentList.indexOf(item)
+        if (index != -1) {
+            currentList.remove(item)
+            notifyItemRemoved(index)
+        }
+    }
+
+    fun updateItem(item: DiscoveryAdapterItem) {
+        val index = currentList.indexOf(item)
+        if (index != -1 && currentList[index] != item) {
+            currentList[index] = item
+            notifyItemChanged(index)
+        }
+    }
+
+    var itemClickListener: ItemClickListener? = null
+    fun setOnItemClickListener(listener: ItemClickListener) {
+        this.itemClickListener = listener
+    }
+
+    interface ItemClickListener {
+        fun onItemClick(item: DiscoveryAdapterItem)
     }
 }
