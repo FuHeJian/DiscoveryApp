@@ -143,7 +143,9 @@ object NettyUtil {
                 Unpooled.wrappedBuffer(data.byteBuffer),
                 groupAddress
             )
-        ).sync()
+        ).addListener {
+
+        }
     }
 
     fun dispatchMessage(msg: Message) {
