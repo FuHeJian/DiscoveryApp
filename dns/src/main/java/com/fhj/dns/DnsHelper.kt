@@ -14,6 +14,7 @@ import com.fhj.byteparse.flatbuffers.ext.TextMessageMake
 import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.id.MessageIdManager
 import com.fhj.logger.Logger
+import com.fhj.user.UserManager
 import kotlinx.coroutines.Dispatchers
 import java.net.DatagramPacket
 import java.net.Inet4Address
@@ -108,6 +109,7 @@ object DnsHelper {
         NettyUtil.setUdpConfig(UdpSocketConfig(NETINTERFACE, GROUP_ADDRESS, byteToIp(wifiAddress.address), PORT))
         isInitSuccess = true
         me = UserMake(Build.MODEL, Build.FINGERPRINT,wifiAddress.toString(), byteToIp(wifiAddress.address))
+        UserManager.addUser(me)
         if (!discovery()) Logger.log("开启失败 ${NETINTERFACE}")
     }
 

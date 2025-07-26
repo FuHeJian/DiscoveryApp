@@ -8,9 +8,10 @@ import com.fhj.discoveryapp.ui.theme.DiscoveryAppTheme
 class ChatActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val toUserKey = intent.getStringExtra("touser") ?: ""
         setContent {
             DiscoveryAppTheme {
-                ChatComposeScreen()
+                ChatComposeScreen(toUserKey = toUserKey)
             }
         }
     }

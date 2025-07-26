@@ -1,5 +1,7 @@
 package com.fhj.discoveryapp.chat
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,30 +9,64 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.ext.getKey
+import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
+import com.fhj.dns.DistributeHelper
+import com.fhj.dns.DnsHelper
+import com.fhj.user.UserManager
+import kotlinx.coroutines.flow.collect
+import java.util.*
+
+private data class UiMessage(
+    val message: Message,
+    val isMe: Boolean,
+    val isLoading: Boolean,
+    val animId: String? = null // 用于动画唯一标识
+)
 
 @Composable
-@Preview
-fun ChatComposeScreen() {
+fun ChatComposeScreen(toUserKey: String) {
     var input by remember { mutableStateOf(TextFieldValue("")) }
-    val messages = remember {
-        mutableStateListOf(
-            Message("你好！", true),
-            Message("你好，有什么可以帮你？", false),
-            Message("请帮我推荐一首歌。", true),
-            Message("推荐你听《Daydream》。", false)
-        )
+    val messages = remember { mutableStateListOf<UiMessage>() }
+    val colors = MaterialTheme.colors
+    val me = remember { DnsHelper.me }
+    val currentUser = UserManager.getUser(me)
+    val toUser = UserManager.getUser(toUserKey)?.user
+    var animatingMsgId by remember { mutableStateOf<String?>(null) }
+
+    // 收集SharedFlow<Message>，只展示与toUserKey相关的消息
+    LaunchedEffect(toUserKey) {
+        DistributeHelper.messageOnReceive.collect { msg ->
+            val fromKey = msg.fromUser().getKey()
+            val toKey = msg.toUser()?.getKey() ?: ""
+            if ((fromKey == me.getKey() && toKey == toUserKey) || (fromKey == toUserKey && toKey == me.getKey())) {
+                val isMe = fromKey == me.getKey()
+                if (isMe) {
+                    val idx = messages.indexOfFirst { it.isLoading && it.message.id() == msg.id() }
+                    if (idx != -1) {
+                        messages[idx] = messages[idx].copy(isLoading = false)
+                    } else {
+                        messages.add(UiMessage(msg, isMe, false))
+                    }
+                } else {
+                    messages.add(UiMessage(msg, isMe, false))
+                }
+            }
+        }
     }
 
-    val colors = MaterialTheme.colors
     Scaffold(
         backgroundColor = colors.background,
         topBar = {
@@ -52,8 +88,11 @@ fun ChatComposeScreen() {
                 input = input,
                 onInputChange = { input = it },
                 onSend = {
-                    if (input.text.isNotBlank()) {
-                        messages.add(Message(input.text, true))
+                    if (input.text.isNotBlank() && currentUser != null && toUser != null) {
+                        val msg = currentUser.sendText(input.text, toUser)
+                        val animId = UUID.randomUUID().toString()
+                        messages.add(UiMessage(msg, true, true, animId))
+                        animatingMsgId = animId
                         input = TextFieldValue("")
                     }
                 }
@@ -72,8 +111,15 @@ fun ChatComposeScreen() {
                 reverseLayout = true,
                 contentPadding = PaddingValues(16.dp)
             ) {
-                items(messages.reversed()) { msg ->
-                    ChatBubble(msg)
+                items(messages.reversed()) { uiMsg ->
+                    val isAnimating = uiMsg.animId != null && uiMsg.animId == animatingMsgId
+                    ChatBubbleAnimated(
+                        message = uiMsg.message,
+                        isMe = uiMsg.isMe,
+                        isLoading = uiMsg.isLoading,
+                        animate = isAnimating,
+                        onAnimEnd = { if (isAnimating) animatingMsgId = null }
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -81,27 +127,64 @@ fun ChatComposeScreen() {
     }
 }
 
-data class Message(val text: String, val isMe: Boolean)
+@Composable
+fun ChatBubbleAnimated(
+    message: Message,
+    isMe: Boolean,
+    isLoading: Boolean,
+    animate: Boolean,
+    onAnimEnd: () -> Unit
+) {
+    val scale = remember { Animatable(if (animate) 0.2f else 1f) }
+    val offsetY = remember { Animatable(if (animate) 60f else 0f) }
+    LaunchedEffect(animate) {
+        if (animate) {
+            scale.animateTo(1f, animationSpec = tween(400))
+            offsetY.animateTo(0f, animationSpec = tween(400))
+            onAnimEnd()
+        }
+    }
+    ChatBubble(
+        message = message,
+        isMe = isMe,
+        isLoading = isLoading,
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+                translationY = offsetY.value
+            }
+    )
+}
 
 @Composable
-fun ChatBubble(message: Message) {
+fun ChatBubble(message: Message, isMe: Boolean, isLoading: Boolean, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colors
-    val bubbleColor = if (message.isMe) colors.primary else colors.surface
-    val textColor = if (message.isMe) colors.onPrimary else colors.onSurface
+    val bubbleColor = if (isMe) colors.primary else colors.surface
+    val textColor = if (isMe) colors.onPrimary else colors.onSurface
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (message.isMe) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
-        Box(
-            modifier = Modifier
-                .background(bubbleColor, shape = RoundedCornerShape(20.dp))
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-        ) {
-            Text(
-                text = message.text,
-                color = textColor,
-                style = MaterialTheme.typography.body1
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp).padding(end = 6.dp),
+                    color = colors.secondary,
+                    strokeWidth = 2.dp
+                )
+            }
+            Box(
+                modifier = modifier
+                    .background(bubbleColor, shape = RoundedCornerShape(20.dp))
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = message.getMessageInfo(),
+                    color = textColor,
+                    style = MaterialTheme.typography.body1
+                )
+            }
         }
     }
 }
@@ -140,7 +223,7 @@ fun BottomBar(input: TextFieldValue, onInputChange: (TextFieldValue) -> Unit, on
                 contentColor = colors.onPrimary,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp)
             ) {
-                Icon(Icons.Default.Send, contentDescription = "发送")
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "发送")
             }
         }
     }

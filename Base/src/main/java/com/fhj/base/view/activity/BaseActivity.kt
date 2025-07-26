@@ -43,23 +43,5 @@ abstract class BaseActivity : AppCompatActivity() {
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
-        enableEdgeToEdge()
-        val mainview = (window.decorView.findViewById<View>(android.R.id.content) as? ViewGroup)?.children?.firstOrNull()
-        if (mainview==null)return
-        ViewCompat.setOnApplyWindowInsetsListener(mainview){a,insets->
-
-            Logger.log("insets:$insets")
-
-            mainview.setPadding(0,100,0,0)
-
-            mainview.doOnLayout {
-                enableEdgeToEdge()
-                mainview.requestLayout()
-            }
-
-            WindowInsetsCompat.CONSUMED
-        }
-        mainview.requestApplyInsets()
-        mainview.requestLayout()
     }
 }

@@ -41,8 +41,8 @@ class UserData(val user: User) {
 
     var onlineStatus = OnlineStatus.OFFLINE
 
-    fun sendText(msg:String,toUser: User){
-        NettyUtil.send(MessageMake(
+    fun sendText(msg:String,toUser: User):Message{
+        val v_send = MessageMake(
             MessageType.Text,
             MessageIdManager.getNextId(user),
             me,
@@ -51,7 +51,9 @@ class UserData(val user: User) {
             unionDataType = MessageData.TextMessage,
         ){
             TextMessageMake(it,msg)
-        })
+        }
+        NettyUtil.send(v_send)
+        return v_send
     }
 }
 

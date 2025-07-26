@@ -20,6 +20,7 @@ import com.fhj.discoveryapp.discovery.adapter.DiscoveryAdapterItem
 import com.fhj.dns.DistributeHelper
 import com.fhj.dns.DnsHelper
 import com.fhj.dns.wifi.WifiDetect
+import com.fhj.logger.Logger
 import com.fhj.user.UserManager
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,7 @@ class DiscoveryFragment : BaseFragment<DiscoveryFragmentBinding>() {
         lifecycle.coroutineScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 DistributeHelper.messageOnReceive.collect {
+                    Logger.log("update")
                     adapter.addItem(DiscoveryAdapterItem(it, UserManager.getUser(it.fromUser())!!))
                 }
             }

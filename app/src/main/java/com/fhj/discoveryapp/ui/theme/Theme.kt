@@ -53,6 +53,6 @@ fun DiscoveryAppTheme(
 @Preview
 fun pre(){
     DiscoveryAppTheme{
-        ChatComposeScreen()
+        ChatComposeScreen("")
     }
 }

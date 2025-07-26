@@ -1,6 +1,8 @@
 package com.fhj.byteparse.flatbuffers.cs
 
 import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageStatus
+import com.fhj.byteparse.flatbuffers.ext.MessageMake
 import com.fhj.logger.Logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
@@ -63,8 +65,20 @@ object NettyUtil {
                     //过滤发送消息
                     msg?.also {
                         val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
-                        if(m.fromUser().ip() != config.source){
-                            Logger.log("client接受到消息$msg")
+                        if (m.fromUser().ip() != config.source) {
+                            Logger.log("tttttttt")
+                            //在回给他
+                            send(
+                                MessageMake(
+                                    m.type(),
+                                    m.id(),
+                                    m.toUser(),
+                                    m.fromUser(),
+                                    MessageStatus.SUCCESS,
+                                    m.dataType(),
+                                    { 0 })
+                            )
+                            Logger.log("ccccc")
                             dispatchMessage(m)
                         }
                     }
@@ -132,7 +146,7 @@ object NettyUtil {
         ).sync()
     }
 
-    fun dispatchMessage(msg: Message){
+    fun dispatchMessage(msg: Message) {
         IOSCOPE.launch {
             dispatchChannel.emit(msg)
         }
