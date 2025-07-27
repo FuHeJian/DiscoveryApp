@@ -22,8 +22,8 @@ dependencies {
 
     implementation("com.google.devtools.ksp:symbol-processing-api:${getKSPVersion()}")
     api(libs.flatbuffers.java)//解析通信数据
-    implementation(libs.flatbuffers.java.grpc)
-    implementation(libs.grpc.stub)
+//    implementation(libs.flatbuffers.java.grpc)
+//    implementation(libs.grpc.stub)
 //    implementation(libs.grpc.okhttp)//android客户端需要使用okhttp不能使用netty
     implementation("io.netty:netty-all:5.0.0.Alpha2")
     implementation(libs.ktor.client.core.jvm)//网络请求工具

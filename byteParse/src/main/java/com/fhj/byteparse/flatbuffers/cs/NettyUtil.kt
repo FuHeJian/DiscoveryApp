@@ -2,6 +2,7 @@ package com.fhj.byteparse.flatbuffers.cs
 
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageStatus
+import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.ext.MessageMake
 import com.fhj.logger.Logger
 import io.netty.bootstrap.Bootstrap
@@ -66,19 +67,19 @@ object NettyUtil {
                     msg?.also {
                         val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
                         if (m.fromUser().ip() != config.source) {
-                            Logger.log("tttttttt")
-                            //在回给他
-                            send(
-                                MessageMake(
-                                    m.type(),
-                                    m.id(),
-                                    m.toUser(),
-                                    m.fromUser(),
-                                    MessageStatus.SUCCESS,
-                                    m.dataType(),
-                                    { 0 })
-                            )
-                            Logger.log("ccccc")
+                            if (m.type() == MessageType.DISCOVERY && m.type() == MessageType.CLOSE) {
+                                //在回给他
+                                send(
+                                    MessageMake(
+                                        m.type(),
+                                        m.id(),
+                                        m.toUser(),
+                                        m.fromUser(),
+                                        MessageStatus.SUCCESS,
+                                        m.dataType(),
+                                        { 0 })
+                                )
+                            }
                             dispatchMessage(m)
                         }
                     }
@@ -143,9 +144,7 @@ object NettyUtil {
                 Unpooled.wrappedBuffer(data.byteBuffer),
                 groupAddress
             )
-        ).addListener {
-
-        }
+        )
     }
 
     fun dispatchMessage(msg: Message) {
