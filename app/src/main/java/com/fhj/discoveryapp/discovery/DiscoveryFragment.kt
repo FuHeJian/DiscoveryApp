@@ -58,7 +58,6 @@ class DiscoveryFragment : BaseFragment<DiscoveryFragmentBinding>() {
         lifecycle.coroutineScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 DistributeHelper.messageOnReceive.collect {
-                    Logger.log("update")
                     adapter.addItem(DiscoveryAdapterItem(it, UserManager.getUser(it.fromUser())!!))
                 }
             }

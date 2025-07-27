@@ -67,7 +67,8 @@ object NettyUtil {
                     msg?.also {
                         val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
                         if (m.fromUser().ip() != config.source) {
-                            if (m.type() == MessageType.DISCOVERY && m.type() == MessageType.CLOSE) {
+                            if (m.type() != MessageType.DISCOVERY && m.type() != MessageType.CLOSE) {
+                                Logger.log("1111接收到消息 $it")
                                 //在回给他
                                 send(
                                     MessageMake(
