@@ -61,7 +61,6 @@ private data class UiMessage(
 fun ChatComposeScreen(toUserKey: String = "") {
     var input by remember { mutableStateOf(TextFieldValue("")) }
     val messages = remember { mutableStateListOf<UiMessage>() }
-    val colors = MaterialTheme.colorScheme
     val me = remember { DnsHelper.me }
     val currentUser = UserManager.getUser(me)
     val toUser = UserManager.getUser(toUserKey)?.user
@@ -97,9 +96,8 @@ fun ChatComposeScreen(toUserKey: String = "") {
             listState.animateScrollToItem(0)
         }
     }
-
+    val colors = MaterialTheme.colorScheme
     Scaffold(
-        containerColor = colors.background,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -196,7 +194,7 @@ fun ChatComposeScreen(toUserKey: String = "") {
                         ),
                         maxLines = 3,
 
-                    )
+                        )
 
                     Spacer(modifier = Modifier.width(12.dp))
 
