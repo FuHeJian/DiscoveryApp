@@ -14,17 +14,17 @@ fun DiscoveryAppTheme(
 ) {
     val colors = if (darkTheme) {
         darkColors(
-            primary = Color(AppColors.Primary),
-            primaryVariant = Color(AppColors.PrimaryDark),
-            secondary = Color(AppColors.Secondary),
-            secondaryVariant = Color(AppColors.SecondaryDark),
-            background = Color(AppColors.Background),
-            surface = Color(AppColors.Surface),
-            onPrimary = Color(AppColors.OnPrimary),
-            onSecondary = Color(AppColors.OnSecondary),
-            onBackground = Color(AppColors.OnBackground),
-            onSurface = Color(AppColors.OnSurface),
-            error = Color(AppColors.Error),
+            primary = Color(AppColors.DarkPrimary),
+            primaryVariant = Color(AppColors.DarkPrimaryDark),
+            secondary = Color(AppColors.DarkSecondary),
+            secondaryVariant = Color(AppColors.DarkSecondaryDark),
+            background = Color(AppColors.DarkBackground),
+            surface = Color(AppColors.DarkSurface),
+            onPrimary = Color(AppColors.DarkOnPrimary),
+            onSecondary = Color(AppColors.DarkOnSecondary),
+            onBackground = Color(AppColors.DarkOnBackground),
+            onSurface = Color(AppColors.DarkOnSurface),
+            error = Color(AppColors.DarkError),
         )
     } else {
         lightColors(

@@ -21,9 +21,6 @@ object DistributeHelper {
 
     val messageOnReceive = NettyUtil.dispatchChannel
         .filter { //只接收发给我的消息
-            if (it.toUser() != null) {
-                Logger.log("接收到消息 $it")
-            }
             it.toUser() == null || it.toUser().getKey() == DnsHelper.me.getKey()
         }.onEach {
             //首先经过处理在交给ui,发现消息不传递
@@ -36,17 +33,8 @@ object DistributeHelper {
                     UserManager.getUser(it.fromUser())?.onlineStatus = OnlineStatus.OFFLINE
                 }
 
-                MessageType.Text -> {
-                    val t = it.data(it) as TextMessage
-                    Logger.log(
-                        "text message  ${
-                            t.text()
-                        }->${it.id()}"
-                    )
-                }
-
                 else -> {
-                    Logger.log("unknow message")
+
                 }
             }
         }

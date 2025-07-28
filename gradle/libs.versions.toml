@@ -18,6 +18,7 @@ materialIconsExtended = "1.7.8"
 materialVersion = "1.8.3"
 navigationKtx = "2.9.0"
 uiTooling = "1.8.3"
+material3 = "1.3.2"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -43,6 +44,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 navigation-ui = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationKtx" }
 navigation-fragment-ui = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationKtx" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

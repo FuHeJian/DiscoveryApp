@@ -2,15 +2,9 @@ package com.fhj.discoveryapp.discovery.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.fhj.byteparse.flatbuffers.Message
-import com.fhj.byteparse.flatbuffers.MessageData
 import com.fhj.byteparse.flatbuffers.MessageStatus
-import com.fhj.byteparse.flatbuffers.MessageType
-import com.fhj.byteparse.flatbuffers.TextMessage
-import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.ext.compare
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
 import com.fhj.discoveryapp.databinding.DiscoveryAdapterNormalItemBinding

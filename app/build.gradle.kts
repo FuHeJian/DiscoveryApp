@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":Base"))
     implementation(project(":dns"))
     implementation(project(":byteParse"))
+    implementation(libs.androidx.material3)
 //    ksp(project(path = ":byteParse"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

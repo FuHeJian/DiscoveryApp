@@ -4,6 +4,8 @@ import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.ext.MessageMake
+import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
+import com.fhj.byteparse.flatbuffers.ext.log
 import com.fhj.logger.Logger
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
@@ -68,7 +70,7 @@ object NettyUtil {
                         val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
                         if (m.fromUser().ip() != config.source) {
                             if (m.type() != MessageType.DISCOVERY && m.type() != MessageType.CLOSE) {
-                                Logger.log("1111接收到消息 $it")
+                                m.log()
                                 //在回给他
                                 send(
                                     MessageMake(
@@ -81,8 +83,8 @@ object NettyUtil {
                                         { 0 })
                                 )
                             }
-                            dispatchMessage(m)
                         }
+                        dispatchMessage(m)
                     }
                 }
 

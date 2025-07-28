@@ -3,19 +3,37 @@ package com.fhj.discoveryapp.chat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,10 +41,10 @@ import androidx.compose.ui.unit.sp
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
+import com.fhj.discoveryapp.ui.theme.AppColors
 import com.fhj.dns.DistributeHelper
 import com.fhj.dns.DnsHelper
 import com.fhj.user.UserManager
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import java.util.*
 
@@ -37,20 +55,25 @@ private data class UiMessage(
     val animId: String? = null // 用于动画唯一标识
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatComposeScreen(toUserKey: String) {
+@Preview()
+fun ChatComposeScreen(toUserKey: String = "") {
     var input by remember { mutableStateOf(TextFieldValue("")) }
     val messages = remember { mutableStateListOf<UiMessage>() }
-    val colors = MaterialTheme.colors
+    val colors = MaterialTheme.colorScheme
     val me = remember { DnsHelper.me }
     val currentUser = UserManager.getUser(me)
     val toUser = UserManager.getUser(toUserKey)?.user
     var animatingMsgId by remember { mutableStateOf<String?>(null) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val listState = rememberLazyListState()
+    var isTextFieldFocused by remember { mutableStateOf(false) }
 
     // 收集SharedFlow<Message>，只展示与toUserKey相关的消息
     LaunchedEffect(toUserKey) {
         DistributeHelper.messageOnReceive.filter {
-            it.toUser() !=null && it.fromUser().getKey() == toUserKey
+            it.toUser() != null && it.fromUser().getKey() == toUserKey
         }.collect { msg ->
             val idx = messages.indexOfFirst { it.isLoading && it.message.id() == msg.id() }
             if (idx != -1) {//接收我怕发送出去的消息
@@ -61,61 +84,172 @@ fun ChatComposeScreen(toUserKey: String) {
         }
     }
 
+    // 当有新消息时自动滚动到顶部
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    // 当输入框获得焦点时滚动到顶部
+    LaunchedEffect(isTextFieldFocused) {
+        if (isTextFieldFocused && messages.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     Scaffold(
-        backgroundColor = colors.background,
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
-                backgroundColor = colors.surface,
-                elevation = 0.dp,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colors.surface.copy(alpha = 0.95f),
+                    titleContentColor = colors.onSurface,
+                    actionIconContentColor = colors.secondary
+                ),
                 title = {
-                    Text("Chat", color = colors.onPrimary, fontSize = 20.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // 头像占位符（可以替换为实际头像）
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(colors.primary.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                toUser?.name()?.firstOrNull()?.toString() ?: "U",
+                                color = colors.primary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                toUser?.name() ?: "用户",
+                                fontWeight = FontWeight.Medium,
+                                color = colors.onSurface
+                            )
+                            Text(
+                                "在线",
+                                fontSize = 12.sp,
+                                color = colors.secondary
+                            )
+                        }
+                    }
                 },
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = colors.secondary)
+                        Icon(
+                            Icons.Default.Phone,
+                            contentDescription = "通话"
+                        )
+                    }
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "更多"
+                        )
                     }
                 }
             )
         },
         bottomBar = {
-            BottomBar(
-                input = input,
-                onInputChange = { input = it },
-                onSend = {
-                    if (input.text.isNotBlank() && currentUser != null && toUser != null) {
-                        val msg = currentUser.sendText(input.text, toUser)
-                        val animId = UUID.randomUUID().toString()
-                        messages.add(UiMessage(msg, true, true, animId))
-                        animatingMsgId = animId
-                        input = TextFieldValue("")
+            // 底部输入栏 - 类似Tailwind风格
+            Surface(
+                color = colors.surface,
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { /* TODO */ },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "添加",
+                            tint = colors.secondary
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        placeholder = { Text("输入消息...") },
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentHeight()
+                            .onFocusChanged { isTextFieldFocused = it.isFocused },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = colors.background,
+                            focusedContainerColor = colors.background,
+                            unfocusedBorderColor = Color(AppColors.Outline),
+                            focusedBorderColor = colors.primary,
+                            unfocusedPlaceholderColor = colors.secondary,
+                            focusedPlaceholderColor = colors.secondary
+                        ),
+                        maxLines = 3,
+
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    IconButton(
+                        onClick = {
+                            if (input.text.isNotBlank() && currentUser != null && toUser != null) {
+                                val msg = currentUser.sendText(input.text, toUser)
+                                val animId = UUID.randomUUID().toString()
+                                messages.add(UiMessage(msg, true, true, animId))
+                                animatingMsgId = animId
+                                input = TextFieldValue("")
+                                // 发送后隐藏键盘
+                                keyboardController?.hide()
+                            }
+                        },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                if (input.text.isNotBlank()) colors.primary else Color.Transparent,
+                                shape = CircleShape
+                            )
+                    ) {
+                        Icon(
+                            if (input.text.isNotBlank()) Icons.AutoMirrored.Filled.Send else Icons.Default.Mic,
+                            contentDescription = "发送",
+                            tint = if (input.text.isNotBlank()) Color.White else colors.secondary
+                        )
                     }
                 }
-            )
+            }
         }
     ) { padding ->
-        Column(
+        // 聊天内容区
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(bottom = 70.dp)
                 .background(colors.background)
+                .clickable { keyboardController?.hide() }, // 点击空白区域隐藏键盘
+            reverseLayout = true,
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                reverseLayout = true,
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                items(messages.reversed()) { uiMsg ->
-                    val isAnimating = uiMsg.animId != null && uiMsg.animId == animatingMsgId
-                    ChatBubbleAnimated(
-                        message = uiMsg.message,
-                        isMe = uiMsg.isMe,
-                        isLoading = uiMsg.isLoading,
-                        animate = isAnimating,
-                        onAnimEnd = { if (isAnimating) animatingMsgId = null }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
+            items(messages.reversed()) { uiMsg ->
+                val isAnimating = uiMsg.animId != null && uiMsg.animId == animatingMsgId
+                ChatBubbleAnimated(
+                    message = uiMsg.message,
+                    isMe = uiMsg.isMe,
+                    isLoading = uiMsg.isLoading,
+                    animate = isAnimating,
+                    onAnimEnd = { if (isAnimating) animatingMsgId = null }
+                )
             }
         }
     }
@@ -153,71 +287,86 @@ fun ChatBubbleAnimated(
 
 @Composable
 fun ChatBubble(message: Message, isMe: Boolean, isLoading: Boolean, modifier: Modifier = Modifier) {
-    val colors = MaterialTheme.colors
-    val bubbleColor = if (isMe) colors.primary else colors.surface
-    val textColor = if (isMe) colors.onPrimary else colors.onSurface
+    val colors = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isMe) Arrangement.End else Arrangement.Start
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp).padding(end = 6.dp),
-                    color = colors.secondary,
-                    strokeWidth = 2.dp
-                )
-            }
+        if (!isMe) {
+            // 其他用户头像
             Box(
-                modifier = modifier
-                    .background(bubbleColor, shape = RoundedCornerShape(20.dp))
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(colors.primary.copy(alpha = 0.2f))
+                    .align(Alignment.Top),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = message.getMessageInfo(),
-                    color = textColor,
-                    style = MaterialTheme.typography.body1
+                    "U",
+                    fontSize = 12.sp,
+                    color = colors.primary,
+                    fontWeight = FontWeight.Medium
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun BottomBar(input: TextFieldValue, onInputChange: (TextFieldValue) -> Unit, onSend: () -> Unit) {
-    val colors = MaterialTheme.colors
-    Surface(
-        color = colors.surface,
-        elevation = 8.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = input,
-                onValueChange = onInputChange,
-                placeholder = { Text("输入消息...", color = colors.onSurface.copy(alpha = 0.5f)) },
-                modifier = Modifier
-                    .weight(1f)
-                    .background(colors.surface, shape = RoundedCornerShape(20.dp)),
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = colors.surface,
-                    focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                    unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-                    textColor = colors.onSurface
-                )
-            )
             Spacer(modifier = Modifier.width(8.dp))
-            FloatingActionButton(
-                onClick = onSend,
-                backgroundColor = colors.primary,
-                contentColor = colors.onPrimary,
-                elevation = FloatingActionButtonDefaults.elevation(0.dp)
+        }
+
+        Column(
+            horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 6.dp),
+                        color = colors.secondary,
+                        strokeWidth = 2.dp
+                    )
+                }
+
+                Box(
+                    modifier = modifier
+                        .background(
+                            if (isMe) colors.primary else colors.surface,
+                            shape = RoundedCornerShape(
+                                topStart = 16.dp,
+                                topEnd = 16.dp,
+                                bottomEnd = if (isMe) 4.dp else 16.dp,
+                                bottomStart = if (isMe) 16.dp else 4.dp
+                            )
+                        )
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .widthIn(max = 260.dp)
+                ) {
+                    Text(
+                        text = message.getMessageInfo(),
+                        color = if (isMe) colors.onPrimary else colors.onSurface,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // 时间和状态信息
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 2.dp)
             ) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "发送")
+                Text(
+                    "09:30", // 这里可以替换为实际时间
+                    fontSize = 12.sp,
+                    color = colors.secondary
+                )
+                if (isMe) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (message.status() == 1) "已读" else "未读", // 根据消息状态显示
+                        fontSize = 12.sp,
+                        color = colors.secondary
+                    )
+                }
             }
         }
     }
