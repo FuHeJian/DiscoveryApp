@@ -130,7 +130,7 @@ object DnsHelper {
             -1,
             me,
             null,
-            status = MessageStatus.SENDING,
+            status = -1,
             unionDataType = MessageData.NONE,
         ))
         return true

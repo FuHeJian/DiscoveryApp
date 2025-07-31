@@ -27,9 +27,12 @@ import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.fhj.base.view.fragment.BaseFragment
 import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.cs.NettyUtil
 import com.fhj.byteparse.flatbuffers.MessageStatus
+import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
+import com.fhj.byteparse.flatbuffers.ext.isSystemMessageType
 import com.fhj.discoveryapp.chat.ChatActivity
 import com.fhj.discoveryapp.discovery.adapter.DiscoveryAdapterItem
 import com.fhj.discoveryapp.ui.theme.AppColors
@@ -72,7 +75,7 @@ class DiscoveryFragment :
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalStdlibApi::class)
 @Composable
 fun DiscoveryComposeScreen() {
     val context = LocalContext.current
@@ -81,19 +84,33 @@ fun DiscoveryComposeScreen() {
 
     // 收集消息并更新发现列表
     LaunchedEffect(Unit) {
-        DistributeHelper.messageOnReceive.collect { message ->
+        DistributeHelper.userMessageOnReceive.collect { message ->
             val user = UserManager.getUser(message.fromUser())
             if (user != null) {
                 val item = DiscoveryAdapterItem(message, user)
                 if (discoveryItems.contains(item)) {
                     val index = discoveryItems.indexOf(item)
                     discoveryItems[index] = item
-                } else {
-                    discoveryItems.add(item)
                 }
             }
         }
     }
+    LaunchedEffect(Unit){
+        DistributeHelper.systemMessageOnReceive.collect { message ->
+            val user = UserManager.getUser(message.fromUser())
+            if (user != null) {
+                val item = DiscoveryAdapterItem(message, user)
+                if (discoveryItems.contains(item)) {
+                    if (item.currentMessage!!.type() == MessageType.CLOSE)
+                        discoveryItems.remove(item)
+                } else {
+                    if (item.currentMessage!!.type() == MessageType.DISCOVERY)
+                        discoveryItems.add(item)
+                }
+            }
+        }
+    }
+
 
     Scaffold(
         containerColor = colors.background,

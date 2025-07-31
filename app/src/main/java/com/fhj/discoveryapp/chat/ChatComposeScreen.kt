@@ -71,13 +71,13 @@ fun ChatComposeScreen(toUserKey: String = "") {
 
     // 收集SharedFlow<Message>，只展示与toUserKey相关的消息
     LaunchedEffect(toUserKey) {
-        DistributeHelper.messageOnReceive.filter {
+        DistributeHelper.userMessageOnReceive.filter {
             it.toUser() != null && it.fromUser().getKey() == toUserKey
         }.collect { msg ->
             val idx = messages.indexOfFirst { it.isLoading && it.message.id() == msg.id() }
             if (idx != -1) {//接收我怕发送出去的消息
                 messages[idx] = messages[idx].copy(isLoading = false)
-            } else {//对方发送回来的新消息
+            } else if (messages.find { msg.id() == it.message.id() } == null) {//对方发送回来的新消息
                 messages.add(UiMessage(msg, false, false))
             }
         }

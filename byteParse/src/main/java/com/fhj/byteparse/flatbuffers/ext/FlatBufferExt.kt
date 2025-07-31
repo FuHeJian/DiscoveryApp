@@ -5,6 +5,7 @@ import com.fhj.byteparse.flatbuffers.FileMessage
 import com.fhj.byteparse.flatbuffers.ImageMessage
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageData
+import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.TextMessage
 import com.fhj.byteparse.flatbuffers.User
 import com.fhj.byteparse.flatbuffers.VideoMessage
@@ -170,6 +171,8 @@ fun MessageMake(
 fun Message.compare(message: Message?) =
     if (message == null) false else this.id() == message.id() && this.fromUser()
         .compare(message.fromUser())
+
+fun Message.isSystemMessageType() = this.type() == MessageType.DISCOVERY || this.type() == MessageType.CLOSE
 
 fun User.compare(user: User) = this.ip() == user.ip() && this.deviceSerial() == this.deviceSerial()
 fun User.getKey() = "${ip()}-${deviceSerial()}}"
