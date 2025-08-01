@@ -4,9 +4,13 @@ import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.ext.MessageMake
+import com.fhj.byteparse.flatbuffers.ext.copy
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
+import com.fhj.byteparse.flatbuffers.ext.isSystemMessageType
 import com.fhj.byteparse.flatbuffers.ext.log
 import com.fhj.logger.Logger
+import com.squareup.kotlinpoet.UNIT
+import io.ktor.client.plugins.logging.Logging
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
@@ -20,11 +24,23 @@ import io.netty.util.internal.PlatformDependent
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.nio.ByteBuffer
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+import kotlin.time.Duration.Companion.seconds
 
 object NettyUtil {
 
@@ -67,24 +83,22 @@ object NettyUtil {
                 ) {
                     //过滤发送消息
                     msg?.also {
-                        val m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
+                        var m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
                         if (m.fromUser().ip() != config.source) {
-                            if (m.type() != MessageType.DISCOVERY && m.type() != MessageType.CLOSE) {
+                            if (!m.isSystemMessageType()) {
                                 m.log()
-                                //在回给他
-                                send(
-                                    MessageMake(
-                                        m.type(),
-                                        m.id(),
-                                        m.toUser(),
-                                        m.fromUser(),
-                                        MessageStatus.SUCCESS,
-                                        m.dataType(),
-                                        { 0 })
-                                )
+                                if (m.status() == MessageStatus.SENDING) {
+                                    m = m.copy(
+                                        fromUser = m.toUser(),
+                                        toUser = m.fromUser(),
+                                        status = MessageStatus.SUCCESS,
+                                    )
+                                    //在回给他
+                                    send(m)
+                                }
                             }
+                            dispatchMessage(m)
                         }
-                        dispatchMessage(m)
                     }
                 }
 
@@ -141,13 +155,45 @@ object NettyUtil {
     }
 
     fun send(data: Message) {
-        //由于不使用DatagramPacket包装，会调用socket.write,但是udp是无连接，无法执行write，只能receive和send，所以发送其他形式数据对象会报错
-        clientCh.writeAndFlush(
-            io.netty.channel.socket.DatagramPacket(
-                Unpooled.wrappedBuffer(data.byteBuffer),
-                groupAddress
+        //超时发送
+        if (data.isSystemMessageType()) {
+            clientCh.writeAndFlush(
+                io.netty.channel.socket.DatagramPacket(
+                    Unpooled.wrappedBuffer(data.byteBuffer),
+                    groupAddress
+                )
             )
-        )
+        } else {
+            IOSCOPE.launch {
+                flow<Unit> {
+                    _sendImpl(data)
+                }.timeout(3.seconds).retry(5) {
+                    false
+                }.catch {
+                    //发送失败，直接分发失败消息
+                    dispatchMessage(data.copy(status = MessageStatus.FAILED))
+                }.collect()
+            }
+        }
+    }
+
+    private suspend fun _sendImpl(data: Message): Unit {
+        suspendCoroutine { con ->
+            //由于不使用DatagramPacket包装，会调用socket.write,但是udp是无连接，无法执行write，只能receive和send，所以发送其他形式数据对象会报错
+            clientCh.writeAndFlush(
+                io.netty.channel.socket.DatagramPacket(
+                    Unpooled.wrappedBuffer(data.byteBuffer),
+                    groupAddress
+                )
+            ).addListener {
+                //发送完成
+                con.resume(UNIT)
+            }
+        }
+    }
+
+    private fun _sendImpl() {
+
     }
 
     fun dispatchMessage(msg: Message) {

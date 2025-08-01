@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -29,7 +30,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -39,11 +42,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fhj.byteparse.flatbuffers.Message
+import com.fhj.byteparse.flatbuffers.MessageStatus
+import com.fhj.byteparse.flatbuffers.MessageType
+import com.fhj.byteparse.flatbuffers.ext.compare
 import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
 import com.fhj.discoveryapp.ui.theme.AppColors
 import com.fhj.dns.DistributeHelper
 import com.fhj.dns.DnsHelper
+import com.fhj.logger.Logger
 import com.fhj.user.UserManager
 import kotlinx.coroutines.flow.filter
 import java.util.*
@@ -51,9 +58,14 @@ import java.util.*
 private data class UiMessage(
     val message: Message,
     val isMe: Boolean,
-    val isLoading: Boolean,
     val animId: String? = null // 用于动画唯一标识
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (other === this) return true
+        if (other !is UiMessage) return false
+        return other.message.compare(message)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,13 +84,17 @@ fun ChatComposeScreen(toUserKey: String = "") {
     // 收集SharedFlow<Message>，只展示与toUserKey相关的消息
     LaunchedEffect(toUserKey) {
         DistributeHelper.userMessageOnReceive.filter {
+            Logger.log("更新3333 ${it.fromUser().getKey() == toUserKey}")
             it.toUser() != null && it.fromUser().getKey() == toUserKey
         }.collect { msg ->
-            val idx = messages.indexOfFirst { it.isLoading && it.message.id() == msg.id() }
-            if (idx != -1) {//接收我怕发送出去的消息
-                messages[idx] = messages[idx].copy(isLoading = false)
+            val idx = messages.indexOfFirst { it.message.id() == msg.id() && it.isMe }
+            Logger.log("更新0000 ${messages.find { msg.id() == it.message.id() }} ${idx}")
+            if (idx != -1) {//接收我发送出去的消息
+                messages[idx] = UiMessage(msg, messages[idx].isMe)
+                Logger.log("更新1111 ${messages[idx]} ${messages[idx].message.status()}")
             } else if (messages.find { msg.id() == it.message.id() } == null) {//对方发送回来的新消息
-                messages.add(UiMessage(msg, false, false))
+                messages.add(UiMessage(msg, false))
+                Logger.log("更新222 ${messages[idx]}")
             }
         }
     }
@@ -203,7 +219,7 @@ fun ChatComposeScreen(toUserKey: String = "") {
                             if (input.text.isNotBlank() && currentUser != null && toUser != null) {
                                 val msg = currentUser.sendText(input.text, toUser)
                                 val animId = UUID.randomUUID().toString()
-                                messages.add(UiMessage(msg, true, true, animId))
+                                messages.add(UiMessage(msg, true, animId))
                                 animatingMsgId = animId
                                 input = TextFieldValue("")
                                 // 发送后隐藏键盘
@@ -244,9 +260,24 @@ fun ChatComposeScreen(toUserKey: String = "") {
                 ChatBubbleAnimated(
                     message = uiMsg.message,
                     isMe = uiMsg.isMe,
-                    isLoading = uiMsg.isLoading,
                     animate = isAnimating,
-                    onAnimEnd = { if (isAnimating) animatingMsgId = null }
+                    onAnimEnd = { if (isAnimating) animatingMsgId = null },
+                    onRetry = {
+                        // 重试发送消息
+                        if (currentUser != null && toUser != null) {
+                            val retryMsg =
+                                currentUser.sendText(uiMsg.message.getMessageInfo(), toUser)
+                            val animId = UUID.randomUUID().toString()
+                            val v_s = UiMessage(retryMsg, true, animId)
+                            if (messages.contains(v_s)) {
+                                messages.remove(v_s)
+                                messages.add(v_s)
+                            } else {
+                                messages.add(v_s)
+                            }
+                            animatingMsgId = animId
+                        }
+                    }
                 )
             }
         }
@@ -257,9 +288,9 @@ fun ChatComposeScreen(toUserKey: String = "") {
 fun ChatBubbleAnimated(
     message: Message,
     isMe: Boolean,
-    isLoading: Boolean,
     animate: Boolean,
-    onAnimEnd: () -> Unit
+    onAnimEnd: () -> Unit,
+    onRetry: (() -> Unit)? = null
 ) {
     val scale = remember { Animatable(if (animate) 0.2f else 1f) }
     val offsetY = remember { Animatable(if (animate) 60f else 0f) }
@@ -273,18 +304,23 @@ fun ChatBubbleAnimated(
     ChatBubble(
         message = message,
         isMe = isMe,
-        isLoading = isLoading,
         modifier = Modifier
             .graphicsLayer {
                 scaleX = scale.value
                 scaleY = scale.value
                 translationY = offsetY.value
-            }
+            },
+        onRetry = onRetry
     )
 }
 
 @Composable
-fun ChatBubble(message: Message, isMe: Boolean, isLoading: Boolean, modifier: Modifier = Modifier) {
+fun ChatBubble(
+    message: Message,
+    isMe: Boolean,
+    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null
+) {
     val colors = MaterialTheme.colorScheme
 
     Row(
@@ -315,16 +351,42 @@ fun ChatBubble(message: Message, isMe: Boolean, isLoading: Boolean, modifier: Mo
             horizontalAlignment = if (isMe) Alignment.End else Alignment.Start
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .size(16.dp)
-                            .padding(end = 6.dp),
-                        color = colors.secondary,
-                        strokeWidth = 2.dp
-                    )
-                }
+                Logger.log("更新 ${message.status()}")
+                when (message.status()) {
+                    MessageStatus.SENDING -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(end = 6.dp),
+                            color = colors.secondary,
+                            strokeWidth = 2.dp
+                        )
+                    }
 
+                    MessageStatus.FAILED -> {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(
+                                    colors.error.copy(alpha = 0.1f),
+                                    shape = CircleShape
+                                )
+                                .clickable {
+                                    onRetry?.invoke()
+                                }
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "重试",
+                                tint = colors.error,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+
+                    else -> {}
+                }
                 Box(
                     modifier = modifier
                         .background(

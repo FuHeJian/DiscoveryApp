@@ -50,7 +50,7 @@ class UserData(val user: User) {
             status = MessageStatus.SENDING,
             unionDataType = MessageData.TextMessage,
         ){
-            TextMessageMake(it,msg)
+            TextMessageMake(it,text = msg)
         }
         NettyUtil.send(v_send)
         return v_send
