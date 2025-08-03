@@ -107,6 +107,7 @@ object NettyUtil {
                     promise: ChannelPromise?
                 ) {
                     super.close(ctx, promise)
+                    Logger.log("client接受到消息 close")
                 }
             })
         client = bootStrap

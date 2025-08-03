@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.fhj.byteparse.flatbuffers.Message
 import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
+import com.fhj.byteparse.flatbuffers.ext.UserMake
 import com.fhj.byteparse.flatbuffers.ext.compare
 import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
@@ -51,6 +52,7 @@ import com.fhj.discoveryapp.ui.theme.AppColors
 import com.fhj.dns.DistributeHelper
 import com.fhj.dns.DnsHelper
 import com.fhj.logger.Logger
+import com.fhj.messagestore.MessageStorageManager
 import com.fhj.user.UserManager
 import kotlinx.coroutines.flow.filter
 import java.util.*
@@ -72,9 +74,15 @@ private data class UiMessage(
 @Preview()
 fun ChatComposeScreen(toUserKey: String = "") {
     var input by remember { mutableStateOf(TextFieldValue("")) }
-    val messages = remember { mutableStateListOf<UiMessage>() }
     val me = remember { DnsHelper.me }
     val currentUser = UserManager.getUser(me)
+    val messages = remember {
+        mutableStateListOf<UiMessage>().apply {
+            addAll(MessageStorageManager.getUserMessages(me.getKey())?.map {
+                UiMessage(it, it.fromUser().getKey() == it.fromUser().getKey())
+            } ?: emptyList())
+        }
+    }
     val toUser = UserManager.getUser(toUserKey)?.user
     var animatingMsgId by remember { mutableStateOf<String?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
