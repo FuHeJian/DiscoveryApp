@@ -49,6 +49,7 @@ class UserData(val user: User) {
             toUser,
             status = MessageStatus.SENDING,
             unionDataType = MessageData.TextMessage,
+            me
         ){
             TextMessageMake(it,text = msg)
         }

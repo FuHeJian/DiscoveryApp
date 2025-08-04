@@ -36,6 +36,8 @@ public final class Message extends Table {
   public int status() { int o = __offset(12); return o != 0 ? bb.get(o + bb_pos) & 0xFF : 0; }
   public byte dataType() { int o = __offset(14); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public Table data(Table obj) { int o = __offset(16); return o != 0 ? __union(obj, o + bb_pos) : null; }
+  public com.fhj.byteparse.flatbuffers.User source() { return source(new com.fhj.byteparse.flatbuffers.User()); }
+  public com.fhj.byteparse.flatbuffers.User source(com.fhj.byteparse.flatbuffers.User obj) { int o = __offset(18); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
 
   public static int createMessage(FlatBufferBuilder builder,
       long type,
@@ -44,8 +46,10 @@ public final class Message extends Table {
       int toUserOffset,
       int status,
       byte dataType,
-      int dataOffset) {
-    builder.startTable(7);
+      int dataOffset,
+      int sourceOffset) {
+    builder.startTable(8);
+    Message.addSource(builder, sourceOffset);
     Message.addData(builder, dataOffset);
     Message.addToUser(builder, toUserOffset);
     Message.addFromUser(builder, fromUserOffset);
@@ -56,7 +60,7 @@ public final class Message extends Table {
     return Message.endMessage(builder);
   }
 
-  public static void startMessage(FlatBufferBuilder builder) { builder.startTable(7); }
+  public static void startMessage(FlatBufferBuilder builder) { builder.startTable(8); }
   public static void addType(FlatBufferBuilder builder, long type) { builder.addInt(0, (int) type, (int) 0L); }
   public static void addId(FlatBufferBuilder builder, long id) { builder.addInt(1, (int) id, (int) 0L); }
   public static void addFromUser(FlatBufferBuilder builder, int fromUserOffset) { builder.addOffset(2, fromUserOffset, 0); }
@@ -64,6 +68,7 @@ public final class Message extends Table {
   public static void addStatus(FlatBufferBuilder builder, int status) { builder.addByte(4, (byte) status, (byte) 0); }
   public static void addDataType(FlatBufferBuilder builder, byte dataType) { builder.addByte(5, dataType, 0); }
   public static void addData(FlatBufferBuilder builder, int dataOffset) { builder.addOffset(6, dataOffset, 0); }
+  public static void addSource(FlatBufferBuilder builder, int sourceOffset) { builder.addOffset(7, sourceOffset, 0); }
   public static int endMessage(FlatBufferBuilder builder) {
     int o = builder.endTable();
     return o;

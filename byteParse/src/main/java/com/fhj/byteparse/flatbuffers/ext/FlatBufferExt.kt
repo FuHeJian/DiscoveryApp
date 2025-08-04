@@ -147,6 +147,7 @@ fun MessageMake(
     toUser: User?,
     status: Int,
     unionDataType: Byte,
+    sourceUser:User,
     dataCreator: (builder: FlatBufferBuilder) -> Int = { builder: FlatBufferBuilder -> 0 }
 ): Message {
 
@@ -167,6 +168,15 @@ fun MessageMake(
             toUser.name(),
             toUser.ip()
         )
+
+        val sourceUser = UserMakeOffset(
+            this,
+            data = null,
+            sourceUser.device(),
+            sourceUser.deviceSerial(),
+            sourceUser.name(),
+            sourceUser.ip()
+        )
         finish(
             Message.createMessage(
                 this,
@@ -176,7 +186,8 @@ fun MessageMake(
                 toUserOffset,
                 status,
                 unionDataType,
-                dataCreator(this)
+                dataCreator(this),
+                sourceUser
             )
         )
         Message.getRootAsMessage(this.dataBuffer())
@@ -194,8 +205,9 @@ fun Message.copy(
     toUser: User? = this.toUser(),
     status: Int = this.status(),
     unionDataType: Byte = this.dataType(),
+    sourceUser: User = this.source(),
     dataCreator: (builder: FlatBufferBuilder) -> Int = this.copyData()
-) = MessageMake(type, id, fromUser, toUser, status, unionDataType, dataCreator)
+) = MessageMake(type, id, fromUser, toUser, status, unionDataType, sourceUser,dataCreator)
 
 fun Message.copyData() = { _b: FlatBufferBuilder ->
     when (this.dataType()) {
@@ -238,12 +250,15 @@ fun User.getKey() = "${ip()}-${deviceSerial()}}"
 
 fun User?.getInfo() = this?.name() ?: ""
 
-fun Message.log() {
+fun Message.log(tag: String = "") {
 
     val prefix =
-        "${this.fromUser().getInfo()} --> ${
-            this.toUser().getInfo()
-        }\n<id>:${this.id()}\n<content>: ${getMessageInfo()}"
+        """
+            <tag>: ${tag}
+            "${this.fromUser().getInfo()} --> ${this.toUser().getInfo()}
+            <id>:${this.id()}
+            <status>:${status()}
+            <content>: ${getMessageInfo()}"""
 
     Logger.log(prefix)
 }

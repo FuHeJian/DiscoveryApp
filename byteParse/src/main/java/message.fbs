@@ -94,4 +94,5 @@ table Message {
     toUser:User;
     status:MessageStatus;
     data:MessageData;
+    source:User;//原始数据发送方
 }
