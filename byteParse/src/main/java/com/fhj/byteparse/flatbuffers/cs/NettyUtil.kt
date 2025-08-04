@@ -86,13 +86,14 @@ object NettyUtil {
                         var m = Message.getRootAsMessage(ByteBuffer.wrap(it.content().array()))
                         if (m.fromUser().ip() != config.source) {
                             if (!m.isSystemMessageType()) {
-                                m.log()
-                                if (m.status() == MessageStatus.SENDING) {
+                                m.log("接收")
+                                if (m.status() == MessageStatus.SENDING) {//对方发送的
                                     m = m.copy(
                                         fromUser = m.toUser(),
                                         toUser = m.fromUser(),
                                         status = MessageStatus.SUCCESS,
                                     )
+                                    m.log("发送")
                                     //在回给他
                                     send(m)
                                 }

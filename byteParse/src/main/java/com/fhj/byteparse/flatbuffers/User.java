@@ -2,6 +2,7 @@
 
 package com.fhj.byteparse.flatbuffers;
 
+import com.fhj.byteparse.flatbuffers.ext.FlatBufferExtKt;
 import com.google.flatbuffers.BaseVector;
 import com.google.flatbuffers.BooleanVector;
 import com.google.flatbuffers.ByteVector;
@@ -18,6 +19,7 @@ import com.google.flatbuffers.Table;
 import com.google.flatbuffers.UnionVector;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public final class User extends Table {
@@ -68,6 +70,18 @@ public final class User extends Table {
 
     public User get(int j) { return get(new User(), j); }
     public User get(User obj, int j) {  return obj.__assign(__indirect(__element(j), bb), bb); }
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if(obj == null)return false;
+    if(!(obj instanceof User))return false;
+    return FlatBufferExtKt.compare((User)obj,this);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.ip().hashCode();
   }
 }
 

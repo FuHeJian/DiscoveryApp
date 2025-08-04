@@ -1,9 +1,13 @@
 package com.fhj.dns
 
+import com.fhj.byteparse.flatbuffers.MessageStatus
 import com.fhj.byteparse.flatbuffers.MessageType
 import com.fhj.byteparse.flatbuffers.cs.NettyUtil
 import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.byteparse.flatbuffers.ext.isSystemMessageType
+import com.fhj.id.MessageIdManager
+import com.fhj.messagestore.MessageStorageManager
+import com.fhj.messagestore.MessagesCacheManager
 import com.fhj.user.OnlineStatus
 import com.fhj.user.UserManager
 import kotlinx.coroutines.flow.filter
@@ -33,6 +37,11 @@ object DistributeHelper {
 
     val userMessageOnReceive = messageOnReceive.filter {
         !it.isSystemMessageType()
+    }.onEach {
+        //保存数据
+        MessageStorageManager.saveMessage(it.fromUser().getKey(), it)
+        //更新id
+        MessageIdManager.updateId(it.fromUser(), it.id())
     }
 
     val systemMessageOnReceive = messageOnReceive.filter {

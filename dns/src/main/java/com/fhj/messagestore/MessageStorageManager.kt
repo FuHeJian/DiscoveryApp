@@ -12,11 +12,15 @@ object MessageStorageManager {
 
     //按照user key 来区分和别人的聊天记录
 
-    fun getUserMessages(key: String): Queue<Message>? {
-        return messagesCache[key]?.getMessages()
+    /**
+     * 和某个用户的聊天记录
+     * @param key 对方的key
+     */
+    fun getUserMessages(key: String): Queue<Message> {
+        return messagesCache.getOrPut(key) { MessagesCacheManager(key) }.getMessages()
     }
 
-    fun saveMessage(key: String, msgs: List<Message>) {
+    fun saveMessage(key: String, msgs: Message) {
         messagesCache.getOrPut(key) { MessagesCacheManager(key) }.saveMessage(msgs)
     }
 

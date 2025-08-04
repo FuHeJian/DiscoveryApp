@@ -51,6 +51,7 @@ import com.fhj.byteparse.flatbuffers.ext.getMessageInfo
 import com.fhj.discoveryapp.ui.theme.AppColors
 import com.fhj.dns.DistributeHelper
 import com.fhj.dns.DnsHelper
+import com.fhj.id.MessageIdManager
 import com.fhj.logger.Logger
 import com.fhj.messagestore.MessageStorageManager
 import com.fhj.user.UserManager
@@ -76,14 +77,22 @@ fun ChatComposeScreen(toUserKey: String = "") {
     var input by remember { mutableStateOf(TextFieldValue("")) }
     val me = remember { DnsHelper.me }
     val currentUser = UserManager.getUser(me)
+    val toUser = UserManager.getUser(toUserKey)?.user
     val messages = remember {
         mutableStateListOf<UiMessage>().apply {
-            addAll(MessageStorageManager.getUserMessages(me.getKey())?.map {
-                UiMessage(it, it.fromUser().getKey() == it.fromUser().getKey())
-            } ?: emptyList())
+            addAll(MessageStorageManager.getUserMessages(toUserKey).map {
+                UiMessage(it, it.source().getKey() == me.getKey())
+            }.apply {
+                //更新id
+                toUser?.let {
+                    this.lastOrNull()?.let {
+                        MessageIdManager.updateId(fromUser = toUser, last().message.id())
+                    }
+                }
+            })
         }
     }
-    val toUser = UserManager.getUser(toUserKey)?.user
+
     var animatingMsgId by remember { mutableStateOf<String?>(null) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val listState = rememberLazyListState()
@@ -92,17 +101,13 @@ fun ChatComposeScreen(toUserKey: String = "") {
     // 收集SharedFlow<Message>，只展示与toUserKey相关的消息
     LaunchedEffect(toUserKey) {
         DistributeHelper.userMessageOnReceive.filter {
-            Logger.log("更新3333 ${it.fromUser().getKey() == toUserKey}")
-            it.toUser() != null && it.fromUser().getKey() == toUserKey
+            it.fromUser().getKey() == toUserKey
         }.collect { msg ->
             val idx = messages.indexOfFirst { it.message.id() == msg.id() && it.isMe }
-            Logger.log("更新0000 ${messages.find { msg.id() == it.message.id() }} ${idx}")
             if (idx != -1) {//接收我发送出去的消息
                 messages[idx] = UiMessage(msg, messages[idx].isMe)
-                Logger.log("更新1111 ${messages[idx]} ${messages[idx].message.status()}")
             } else if (messages.find { msg.id() == it.message.id() } == null) {//对方发送回来的新消息
                 messages.add(UiMessage(msg, false))
-                Logger.log("更新222 ${messages[idx]}")
             }
         }
     }

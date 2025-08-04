@@ -13,6 +13,7 @@ import com.fhj.byteparse.flatbuffers.ext.getKey
 import com.fhj.dns.DnsHelper
 import com.fhj.dns.DnsHelper.me
 import com.fhj.id.MessageIdManager
+import com.fhj.logger.Logger
 
 object UserManager {
     private val userMap = mutableMapOf<String, UserData>()
@@ -33,7 +34,7 @@ object UserManager {
 
 class UserData(val user: User) {
     override fun equals(other: Any?): Boolean {
-        if(other !is UserData)return false
+        if (other !is UserData) return false
         return user.compare(other.user)
     }
 
@@ -41,18 +42,20 @@ class UserData(val user: User) {
 
     var onlineStatus = OnlineStatus.OFFLINE
 
-    fun sendText(msg:String,toUser: User):Message{
+    fun sendText(msg: String, toUser: User): Message {
         val v_send = MessageMake(
             MessageType.Text,
-            MessageIdManager.getNextId(user),
+            MessageIdManager.getNextId(toUser),
             me,
             toUser,
             status = MessageStatus.SENDING,
             unionDataType = MessageData.TextMessage,
             me
-        ){
-            TextMessageMake(it,text = msg)
+        ) {
+            TextMessageMake(it, text = msg)
         }
+
+        Logger.log("获取到的id ${toUser.getKey()} -> ${v_send.id()}")
         NettyUtil.send(v_send)
         return v_send
     }

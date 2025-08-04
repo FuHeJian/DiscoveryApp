@@ -13,12 +13,11 @@ class MessagesCacheManager(key: String) {
         return messages
     }
 
-    fun saveMessage(msgs:List<Message>){
-        messages.addAll(msgs)
+    fun saveMessage(msgs:Message){
+        messages.add(msgs)
     }
 
     suspend fun loadMore(): List<Message> {
-
         return emptyList()
     }
 }
